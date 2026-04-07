@@ -30,6 +30,14 @@ export async function vectorSearch(
   return results
 }
 
+// Direct brand query — used to supplement vector results when brand is underrepresented
+export async function brandSearch(brand: string, topK: number): Promise<SpecResult[]> {
+  return SpecModel.find({ brand: { $regex: brand, $options: 'i' } })
+    .select('-embedding')
+    .limit(topK)
+    .lean() as Promise<SpecResult[]>
+}
+
 // Merge results from multiple queries, deduplicating by slug and keeping highest score
 export function mergeResults(resultSets: SpecResult[][]): SpecResult[] {
   const seen = new Map<string, SpecResult>()

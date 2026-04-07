@@ -1,10 +1,40 @@
 import { embedText } from './embedder'
-import { vectorSearch, mergeResults, type SpecResult } from './retriever'
+import { vectorSearch, brandSearch, mergeResults, type SpecResult } from './retriever'
 import { rerank } from './reranker'
 import { generateAnswer, expandQuery } from './typhoon'
 
 const TOP_K_FETCH = 15  // docs retrieved per query variation
 const TOP_K_CONTEXT = 5 // docs passed to LLM after reranking
+
+// Known brands + aliases (alias → canonical brand field value pattern)
+const BRAND_KEYWORDS: Record<string, string> = {
+  samsung: 'samsung',
+  galaxy: 'samsung',
+  apple: 'apple',
+  iphone: 'apple',
+  xiaomi: 'xiaomi',
+  redmi: 'xiaomi',
+  oppo: 'oppo',
+  vivo: 'vivo',
+  realme: 'realme',
+  oneplus: 'oneplus',
+  google: 'google',
+  pixel: 'google',
+  huawei: 'huawei',
+  honor: 'honor',
+  sony: 'sony',
+  nokia: 'nokia',
+  motorola: 'motorola',
+  moto: 'motorola',
+}
+
+function detectBrand(query: string): string | null {
+  const lower = query.toLowerCase()
+  for (const [keyword, brand] of Object.entries(BRAND_KEYWORDS)) {
+    if (lower.includes(keyword)) return brand
+  }
+  return null
+}
 
 function formatSpecAsContext(doc: SpecResult, index: number): string {
   const lines: string[] = [
@@ -95,8 +125,27 @@ export async function runRAG(query: string): Promise<RAGResult> {
   // Step 3: Merge deduplicated results
   const merged = mergeResults(resultSets)
 
+  // Step 3b: Brand supplement — if query targets a specific brand but vector results
+  // are underrepresented, inject direct brand docs before reranking
+  const detectedBrand = detectBrand(query)
+  let docsForRerank = merged
+
+  if (detectedBrand) {
+    const brandCount = merged.filter(d => d.brand.toLowerCase().includes(detectedBrand)).length
+    if (brandCount < 3) {
+      const brandDocs = await brandSearch(detectedBrand, TOP_K_FETCH)
+      const scores = merged.map(d => d.score ?? 0)
+      const medianScore = scores.length > 0 ? scores[Math.floor(scores.length / 2)] : 0.5
+      const seen = new Set(merged.map(d => (d.source as { slug: string }).slug))
+      const newDocs = brandDocs
+        .filter(d => !seen.has((d.source as { slug: string }).slug))
+        .map(d => ({ ...d, score: medianScore }))
+      docsForRerank = [...merged, ...newDocs]
+    }
+  }
+
   // Step 4: Rerank
-  const topDocs = await rerank(query, merged, TOP_K_CONTEXT)
+  const topDocs = await rerank(query, docsForRerank, TOP_K_CONTEXT)
 
   // Step 5: Assemble context and generate answer
   const context = assembleContext(topDocs)
