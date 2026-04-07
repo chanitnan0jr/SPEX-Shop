@@ -1,7 +1,14 @@
 import axios from 'axios'
 
-const rawBaseUrl = process.env.NEXT_PUBLIC_API_URL ?? 'http://localhost:3001'
-const baseURL = `${rawBaseUrl.replace(/\/$/, '')}/api`
+const getBaseUrl = () => {
+  const url = process.env.NEXT_PUBLIC_API_URL ?? 'http://localhost:3001'
+  // Ensure absolute URL (must start with http:// or https://)
+  if (!url.startsWith('http')) {
+    return `https://${url}`
+  }
+  return url
+}
+const baseURL = `${getBaseUrl().replace(/\/$/, '')}/api`
 
 const api = axios.create({
   baseURL,
