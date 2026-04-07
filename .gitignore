@@ -1,0 +1,45 @@
+# Environment files
+.env
+.env.*
+.env.local
+!.env.example
+**/.env*
+
+# Dependencies
+node_modules/
+**/node_modules/
+package-lock.json
+yarn.lock
+pnpm-lock.yaml
+
+# Python
+.venv/
+venv/
+env/
+__pycache__/
+*.py[cod]
+.pytest_cache/
+.mypy_cache/
+
+# Data & Cache
+data/*.json
+!data/.gitkeep
+**/.cache/
+**/transformers_cache/
+*.log
+
+# Build & Tooling
+dist/
+coverage/
+.next/
+**/out/
+.vercel
+.turbo
+.DS_Store
+.idea/
+.vscode/
+*.tsbuildinfo
+
+# Internal Assistant Documents
+CLAUDE.md
+TASK.md

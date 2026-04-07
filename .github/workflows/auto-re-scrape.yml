@@ -1,0 +1,35 @@
+name: Auto Re-scrape & Update
+
+on:
+  schedule:
+    - cron: '0 0 1 * *' # Once a month
+  workflow_dispatch: # Allow manual trigger
+
+jobs:
+  scrape-and-update:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.10'
+          cache: 'pip'
+
+      - name: Install Scraper dependencies
+        run: |
+          pip install -r scraper/requirements.txt
+          pip install -r scraper/requirements-embedder.txt
+
+      - name: Run Scraper
+        env:
+          MONGODB_URI: ${{ secrets.MONGODB_URI }}
+          SCRAPE_DELAY_MS: 2000
+        run: |
+          # We limit pages to avoid getting blocked in GHA
+          python scraper/scraper.py --max-pages 5
+          python scraper/cleaner.py
+          python scraper/db.py
+          python scraper/embedder.py

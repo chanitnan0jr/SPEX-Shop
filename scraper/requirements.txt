@@ -1,0 +1,7 @@
+requests
+beautifulsoup4
+pandas
+pymongo
+python-dotenv
+pythainlp
+tenacity
