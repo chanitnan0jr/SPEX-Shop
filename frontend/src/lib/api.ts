@@ -64,9 +64,27 @@ export function isDatasetSourceUrl(url: string): boolean {
   return url.startsWith('dataset://')
 }
 
-export const searchApi = async (query: string): Promise<SearchResponse> => {
-  const { data } = await api.post<SearchResponse>('/search', { query })
+export interface ChatHistoryMessage {
+  _id: string
+  sessionId: string
+  query: string
+  answer: string
+  sources: SearchSource[]
+  createdAt: string
+}
+
+export const searchApi = async ({ query, sessionId }: { query: string; sessionId?: string }): Promise<SearchResponse> => {
+  const { data } = await api.post<SearchResponse>('/search', { query, sessionId })
   return data
+}
+
+export const getChatHistoryApi = async (sessionId: string): Promise<ChatHistoryMessage[]> => {
+  const { data } = await api.get<ChatHistoryMessage[]>(`/chat/${sessionId}`)
+  return data
+}
+
+export const deleteChatHistoryApi = async (sessionId: string): Promise<void> => {
+  await api.delete(`/chat/${sessionId}`)
 }
 
 export const getModelsApi = async (): Promise<string[]> => {

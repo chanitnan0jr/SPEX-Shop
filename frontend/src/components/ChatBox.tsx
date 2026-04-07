@@ -4,7 +4,7 @@ import { useEffect, useRef, useState, startTransition } from 'react'
 import { useMutation } from '@tanstack/react-query'
 import { ArrowUpRight, Bot, Check, ChevronDown, ChevronUp, Edit2, History, Loader2, MessagesSquare, PlusCircle, Sparkles, ThumbsDown, ThumbsUp, Trash2, User, X } from 'lucide-react'
 import { motion, AnimatePresence } from 'framer-motion'
-import { searchApi, submitFeedbackApi, type SearchResponse } from '@/lib/api'
+import { searchApi, submitFeedbackApi, getChatHistoryApi, deleteChatHistoryApi, type SearchResponse } from '@/lib/api'
 import { Input } from '@/components/ui/input'
 import { Button } from '@/components/ui/button'
 import { pickText } from '@/lib/i18n'
@@ -93,21 +93,43 @@ export function ChatBox() {
     setIsLoaded(true)
   }, [])
 
-  // Load messages whenever activeSessionId changes
+  // Load messages whenever activeSessionId changes — backend is source of truth
   useEffect(() => {
     if (!isLoaded || !activeSessionId) return
 
-    const savedMessages = localStorage.getItem(`specbot_messages_${activeSessionId}`)
-    if (savedMessages) {
-      try {
-        setMessages(JSON.parse(savedMessages))
-      } catch (e) {
-        console.error('Failed to parse messages', e)
-        setMessages([{ id: 'init', role: 'bot', content: '' }])
-      }
-    } else {
-      setMessages([{ id: 'init', role: 'bot', content: '' }])
-    }
+    const initMsg: Message = { id: 'init', role: 'bot', content: '' }
+
+    getChatHistoryApi(activeSessionId)
+      .then((history) => {
+        if (history.length === 0) {
+          setMessages([initMsg])
+          return
+        }
+        const hydrated: Message[] = [initMsg]
+        for (const entry of history) {
+          hydrated.push({ id: `${entry._id}-user`, role: 'user', content: entry.query })
+          hydrated.push({
+            id: `${entry._id}-bot`,
+            role: 'bot',
+            content: entry.answer,
+            response: { answer: entry.answer, sources: entry.sources },
+          })
+        }
+        setMessages(hydrated)
+      })
+      .catch(() => {
+        // Backend unreachable — fall back to localStorage
+        const savedMessages = localStorage.getItem(`specbot_messages_${activeSessionId}`)
+        if (savedMessages) {
+          try {
+            setMessages(JSON.parse(savedMessages))
+          } catch {
+            setMessages([initMsg])
+          }
+        } else {
+          setMessages([initMsg])
+        }
+      })
   }, [activeSessionId, isLoaded])
   
   // Auto-collapse header when messages start flowing
@@ -153,6 +175,7 @@ export function ChatBox() {
     e.stopPropagation()
     const updatedSessions = sessions.filter(s => s.id !== id)
     localStorage.removeItem(`specbot_messages_${id}`)
+    deleteChatHistoryApi(id).catch(err => console.error('[chat] delete history error:', err))
     
     if (updatedSessions.length === 0) {
       // Re-initialize if all deleted
@@ -184,7 +207,7 @@ export function ChatBox() {
   }
 
   const mutation = useMutation({
-    mutationFn: searchApi,
+    mutationFn: (query: string) => searchApi({ query, sessionId: activeSessionId ?? undefined }),
     onSuccess: (data) => {
       startTransition(() => {
         setMessages((prev) => [

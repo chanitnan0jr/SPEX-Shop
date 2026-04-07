@@ -9,6 +9,7 @@ import compareRouter from './routes/compare'
 import imagesRouter from './routes/images'
 import trackRouter from './routes/track'
 import feedbackRouter from './routes/feedback'
+import chatRouter from './routes/chat'
 
 const app = express()
 
@@ -23,6 +24,7 @@ app.use('/api', compareRouter)
 app.use('/api', trackRouter)
 app.use('/api', imagesRouter)
 app.use('/api', feedbackRouter)
+app.use('/api', chatRouter)
 
 app.use(errorHandler)
 
