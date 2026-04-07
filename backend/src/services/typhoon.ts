@@ -128,7 +128,7 @@ export async function generateAnswer(query: string, context: string): Promise<st
       messages: [
         {
           role: 'system',
-          content: 'You are SpecBot, a professional smartphone expert. Answer questions using the provided technical context. Be accurate, objective, and highlight key hardware differences. Always convert any price data to Thai Baht (THB) by multiplying the original value by 0.2625 and format it clearly. If information is missing, state it clearly.'
+          content: 'You are SpecBot, a professional smartphone expert. Answer questions using the provided technical context. Be accurate, objective, and highlight key hardware differences. All prices in the context are already in Thai Baht (THB) — use them as-is without any conversion. If information is missing, state it clearly.'
         },
         {
           role: 'user',
