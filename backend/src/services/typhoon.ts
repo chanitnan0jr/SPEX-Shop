@@ -73,6 +73,33 @@ export class TyphoonService {
 }
 
 /**
+ * Strip noise from long queries (travel stories, personal context, etc.)
+ * and return the core technical question. Only called when query.length > 100.
+ */
+async function extractCoreQuestion(query: string): Promise<string> {
+  if (!TYPHOON_API_KEY) return query
+  try {
+    const response = await axios.post('https://api.opentyphoon.ai/v1/chat/completions', {
+      model: TYPHOON_MODEL,
+      messages: [
+        {
+          role: 'system',
+          content: 'You are a smartphone query extractor. Extract only the core technical question from noisy input. Remove: travel stories, personal context, social fluff. Keep: brand names, model numbers, spec requirements, price range. Return ONE clean concise question in Thai. If already clean, return as-is.',
+        },
+        { role: 'user', content: query },
+      ],
+      max_tokens: 128,
+      temperature: 0.0,
+    }, {
+      headers: { Authorization: `Bearer ${TYPHOON_API_KEY}`, 'Content-Type': 'application/json' },
+    })
+    return response.data.choices[0].message.content.trim() || query
+  } catch {
+    return query
+  }
+}
+
+/**
  * Expand a user query for better vector search retrieval.
  * Returns up to 3 distinct variations of the original technical query.
  */
@@ -80,6 +107,8 @@ export async function expandQuery(query: string): Promise<string[]> {
   if (!TYPHOON_API_KEY) return [query]
 
   try {
+    const effectiveQuery = query.length > 100 ? await extractCoreQuestion(query) : query
+
     const response = await axios.post('https://api.opentyphoon.ai/v1/chat/completions', {
       model: TYPHOON_MODEL,
       messages: [
@@ -87,7 +116,7 @@ export async function expandQuery(query: string): Promise<string[]> {
           role: 'system',
           content: 'You are a smartphone search expert. Expand user queries into exactly 3 distinct technical search variations (brand, model, chipset, specs) in Thai. Return each variation on a new line. Do not use numbering or bullet points.'
         },
-        { role: 'user', content: query }
+        { role: 'user', content: effectiveQuery }
       ],
       max_tokens: 512,
       temperature: 0.6,

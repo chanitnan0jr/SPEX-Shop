@@ -5,8 +5,8 @@ let rerankerModel: any = null
 
 async function getReranker() {
   if (!rerankerModel) {
-    console.log('[reranker] loading ms-marco-MiniLM-L-6-v2...')
-    rerankerModel = await pipeline('text-classification', 'Xenova/ms-marco-MiniLM-L-6-v2')
+    console.log('[reranker] loading ms-marco-MiniLM-L-12-v2...')
+    rerankerModel = await pipeline('text-classification', 'Xenova/ms-marco-MiniLM-L-12-v2')
   }
   return rerankerModel
 }

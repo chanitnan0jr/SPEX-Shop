@@ -38,21 +38,26 @@ export async function brandSearch(brand: string, topK: number): Promise<SpecResu
     .lean() as Promise<SpecResult[]>
 }
 
-// Merge results from multiple queries, deduplicating by slug and keeping highest score
-export function mergeResults(resultSets: SpecResult[][]): SpecResult[] {
-  const seen = new Map<string, SpecResult>()
+// RRF (Reciprocal Rank Fusion) merge — fuses multiple ranked result sets.
+// Docs that rank highly across multiple query variations get a compounding bonus,
+// which distributes results more fairly across brands than a simple "keep highest score".
+export function mergeResults(resultSets: SpecResult[][], rrf_k = 60): SpecResult[] {
+  const rrfScores = new Map<string, number>()
+  const best = new Map<string, SpecResult>()
 
   for (const results of resultSets) {
-    for (const doc of results) {
+    for (let rank = 0; rank < results.length; rank++) {
+      const doc = results[rank]
       const slug = (doc.source as { slug: string }).slug
-      const existing = seen.get(slug)
-      const score = doc.score ?? 0
-
-      if (!existing || (existing.score ?? 0) < score) {
-        seen.set(slug, doc)
+      rrfScores.set(slug, (rrfScores.get(slug) ?? 0) + 1.0 / (rrf_k + rank + 1))
+      const existing = best.get(slug)
+      if (!existing || (existing.score ?? 0) < (doc.score ?? 0)) {
+        best.set(slug, doc)
       }
     }
   }
 
-  return Array.from(seen.values()).sort((a, b) => (b.score ?? 0) - (a.score ?? 0))
+  return Array.from(rrfScores.entries())
+    .sort((a, b) => b[1] - a[1])
+    .map(([slug, rrf]) => ({ ...best.get(slug)!, score: rrf }))
 }

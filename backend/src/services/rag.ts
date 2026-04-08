@@ -28,12 +28,50 @@ const BRAND_KEYWORDS: Record<string, string> = {
   moto: 'motorola',
 }
 
+// Cap results at maxPerBrand from any single brand so no one brand dominates
+// on general queries. Preserves rank order within the cap.
+function diversifyByBrand(docs: SpecResult[], maxPerBrand: number): SpecResult[] {
+  const counts = new Map<string, number>()
+  return docs.filter((doc) => {
+    const brand = doc.brand.toLowerCase()
+    const count = counts.get(brand) ?? 0
+    if (count >= maxPerBrand) return false
+    counts.set(brand, count + 1)
+    return true
+  })
+}
+
 function detectBrand(query: string): string | null {
   const lower = query.toLowerCase()
   for (const [keyword, brand] of Object.entries(BRAND_KEYWORDS)) {
     if (lower.includes(keyword)) return brand
   }
   return null
+}
+
+const HIGHLIGHT_SECTION_PATTERN = /display|ram|storage|camera|battery|chipset|os/i
+const SPEC_SECTIONS_CHAR_CAP = 800
+
+function formatSpecSections(sections: Record<string, Record<string, string>>): string {
+  const chunks: string[] = []
+  let totalChars = 0
+
+  for (const [sectionName, fields] of Object.entries(sections)) {
+    if (HIGHLIGHT_SECTION_PATTERN.test(sectionName)) continue
+
+    const header = `[หมวด: ${sectionName}]`
+    const rows = Object.entries(fields).map(([k, v]) => `${k}: ${v}`).join('\n')
+    const block = `${header}\n${rows}`
+
+    if (totalChars + block.length > SPEC_SECTIONS_CHAR_CAP) {
+      chunks.push('...(ข้อมูลเพิ่มเติมถูกตัดทอน)')
+      break
+    }
+    chunks.push(block)
+    totalChars += block.length
+  }
+
+  return chunks.join('\n')
 }
 
 function formatSpecAsContext(doc: SpecResult, index: number): string {
@@ -59,6 +97,11 @@ function formatSpecAsContext(doc: SpecResult, index: number): string {
   for (const [key, label] of Object.entries(highlightLabels)) {
     if (h[key]) lines.push(`${label}: ${h[key]}`)
   }
+
+  const sectionsBlock = formatSpecSections(
+    (doc.spec_sections ?? {}) as Record<string, Record<string, string>>
+  )
+  if (sectionsBlock) lines.push(sectionsBlock)
 
   lines.push(`ข้อมูลเพิ่มเติม: ${doc.source_url}`)
 
@@ -131,6 +174,7 @@ export async function runRAG(query: string): Promise<RAGResult> {
   let docsForRerank = merged
 
   if (detectedBrand) {
+    // Brand-specific query: supplement if fewer than 3 results for that brand
     const brandCount = merged.filter(d => d.brand.toLowerCase().includes(detectedBrand)).length
     if (brandCount < 3) {
       const brandDocs = await brandSearch(detectedBrand, TOP_K_FETCH)
@@ -142,6 +186,9 @@ export async function runRAG(query: string): Promise<RAGResult> {
         .map(d => ({ ...d, score: medianScore }))
       docsForRerank = [...merged, ...newDocs]
     }
+  } else {
+    // General query: cap each brand at 3 docs so no single brand dominates
+    docsForRerank = diversifyByBrand(merged, 3)
   }
 
   // Step 4: Rerank
