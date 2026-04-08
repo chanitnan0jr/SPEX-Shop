@@ -58,6 +58,9 @@ export function mergeResults(resultSets: SpecResult[][], rrf_k = 60): SpecResult
   }
 
   return Array.from(rrfScores.entries())
-    .sort((a, b) => b[1] - a[1])
+    .sort((a, b) => {
+      const diff = b[1] - a[1]
+      return diff !== 0 ? diff : a[0].localeCompare(b[0])
+    })
     .map(([slug, rrf]) => ({ ...best.get(slug)!, score: rrf }))
 }

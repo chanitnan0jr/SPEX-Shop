@@ -5,8 +5,8 @@ let rerankerModel: any = null
 
 async function getReranker() {
   if (!rerankerModel) {
-    console.log('[reranker] loading ms-marco-MiniLM-L-12-v2...')
-    rerankerModel = await pipeline('text-classification', 'Xenova/ms-marco-MiniLM-L-12-v2')
+    console.log('[reranker] loading bge-reranker-v2-m3...')
+    rerankerModel = await pipeline('text-classification', 'Xenova/bge-reranker-v2-m3')
   }
   return rerankerModel
 }
@@ -39,44 +39,67 @@ function keywordScore(queryTokens: Set<string>, document: SpecResult): number {
   return queryTokens.size > 0 ? matches / queryTokens.size : 0
 }
 
-// Combine vector search score (0–1) with keyword/neural score
-const VECTOR_WEIGHT = 0.5
-const NEURAL_WEIGHT = 0.5
+import { RAG_CONFIG } from '../config/rag'
 
-export async function rerank(query: string, docs: SpecResult[], topK: number): Promise<SpecResult[]> {
+// Combine vector search score (0–1) with keyword/neural score
+const VECTOR_WEIGHT = RAG_CONFIG.WEIGHTS.VECTOR
+const NEURAL_WEIGHT = RAG_CONFIG.WEIGHTS.NEURAL
+
+export async function rerank(
+  query: string, 
+  docs: SpecResult[], 
+  topK: number,
+  intent: string = 'general'
+): Promise<SpecResult[]> {
   if (docs.length === 0) return []
 
   try {
     const model = await getReranker()
     const queryTokens = tokenize(query)
 
-    // Run reranking in parallel batches if needed, but for top 15-20 we can just map
-    const scored = await Promise.all(
-      docs.map(async (doc) => {
-        const docText = `${doc.brand} ${doc.model} ${doc.search_text}`
-        
-        // ms-marco cross-encoder returns a score for [query, text] pair
-        // and Xenova version maps it to LABEL_1 for relevance
-        const result = await model(query, {
-          text_pair: docText,
-          topk: 1
-        })
-        
-        const neuralScore = result[0]?.score || 0
-        const kScore = keywordScore(queryTokens, doc)
+    // Prepare batch for inference: list of text pairs [query, docText]
+    const batch = docs.map(doc => {
+      return { 
+        text: query, 
+        text_pair: `${doc.brand} ${doc.model} ${doc.search_text}` 
+      }
+    })
 
-        return {
-          doc,
-          // Hybrid: Vector Search (context) + Neural (semantics) + Keyword (Exact match boost)
-          finalScore: 
-            VECTOR_WEIGHT * (doc.score ?? 0) + 
-            NEURAL_WEIGHT * neuralScore + 
-            0.1 * kScore 
-        }
-      })
-    )
+    // Run batch inference — much more efficient than individual calls
+    console.log(`[reranker] Running batch rerank for ${docs.length} docs...`)
+    const results = await model(batch)
+    
+    // Process results and combine with keyword scoring + intent boosts
+    const scored = docs.map((doc, i) => {
+      const neuralScore = results[i]?.score || 0
+      const kScore = keywordScore(queryTokens, doc)
+      const docText = `${doc.brand} ${doc.model} ${doc.search_text}`.toLowerCase()
 
-    scored.sort((a, b) => b.finalScore - a.finalScore)
+      // Intent-based boosting
+      let boost = 0
+      if (intent === 'budget' && doc.price_thb && doc.price_thb < 15000) boost += RAG_CONFIG.BOOSTS.INTENT_PRICE
+      if (intent === 'flagship' && doc.price_thb && doc.price_thb > 30000) boost += RAG_CONFIG.BOOSTS.INTENT_PRICE
+      
+      const h = doc.highlights as Record<string, string>
+      if (intent === 'camera' && (h.camera || docText.includes('camera') || docText.includes('megapixel'))) boost += RAG_CONFIG.BOOSTS.INTENT_FEATURE
+      if (intent === 'battery' && (h.battery || docText.includes('mah') || docText.includes('charging'))) boost += RAG_CONFIG.BOOSTS.INTENT_FEATURE
+
+      return {
+        doc,
+        finalScore: 
+          VECTOR_WEIGHT * (doc.score ?? 0) + 
+          NEURAL_WEIGHT * neuralScore + 
+          RAG_CONFIG.WEIGHTS.KEYWORD * kScore +
+          boost
+      }
+    })
+
+    // Sort by finalScore (Primary) and document score (Secondary tie-breaker)
+    scored.sort((a, b) => {
+      const diff = b.finalScore - a.finalScore
+      if (Math.abs(diff) < 0.0001) return (b.doc.score ?? 0) - (a.doc.score ?? 0)
+      return diff
+    })
 
     return scored.slice(0, topK).map(({ doc, finalScore }) => ({
       ...doc,

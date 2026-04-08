@@ -1,10 +1,12 @@
 import { embedText } from './embedder'
 import { vectorSearch, brandSearch, mergeResults, type SpecResult } from './retriever'
 import { rerank } from './reranker'
-import { generateAnswer, expandQuery } from './typhoon'
+import { generateAnswer, expandQuery, detectIntent } from './typhoon'
 
-const TOP_K_FETCH = 15  // docs retrieved per query variation
-const TOP_K_CONTEXT = 5 // docs passed to LLM after reranking
+import { RAG_CONFIG } from '../config/rag'
+
+const TOP_K_FETCH = RAG_CONFIG.TOP_K_FETCH
+const TOP_K_CONTEXT = RAG_CONFIG.TOP_K_CONTEXT
 
 // Known brands + aliases (alias → canonical brand field value pattern)
 const BRAND_KEYWORDS: Record<string, string> = {
@@ -28,6 +30,24 @@ const BRAND_KEYWORDS: Record<string, string> = {
   moto: 'motorola',
 }
 
+const BRAND_POSITIONING: Record<string, string> = {
+  apple: 'แบรนด์พรีเมียม เน้นระบบนิเวศ (Ecosystem) และความเสถียร ใช้งานง่าย ราคามักจะอยู่ในกลุ่มสูง',
+  samsung: 'แบรนด์ที่มีนวัตกรรมหลากหลาย มีตัวเลือกตั้งแต่รุ่นเริ่มต้นไปจนถึงรุ่นท็อปซีรีส์ S/Fold เน้นหน้าจอและกล้อง',
+  xiaomi: 'เน้นความคุ้มค่า (Value for money) สเปคแรงในราคาที่เข้าถึงง่าย เหมาะกับผู้ที่ชอบปรับแต่ง',
+  redmi: 'แบรนด์ย่อยของ Xiaomi เน้นความคุ้มค่าสูงสุดในราคาประหยัดและระดับกลาง',
+  oppo: 'เน้นดีไซน์สวยงามและการถ่ายภาพเซลฟี่/กล้องหลังที่ปรับแต่งมาให้นุ่มนวล ชาร์จเร็ว',
+  vivo: 'เน้นความบันเทิงและการถ่ายภาพเป็นหลัก โดยเฉพาะภาพพอร์ตเทรตและการออกแบบที่บางเบา',
+  realme: 'แบรนด์สำหรับคนรุ่นใหม่ เน้นความเร็ว สเปคการเล่นเกม และเทคโนโลยีชาร์จเร็วในราคาจับต้องได้',
+  oneplus: 'เน้นประสิทธิภาพความเร็ว (Fast & Smooth) และประสบการณ์การใช้งานที่ลื่นไหล',
+  google: 'ประสบการณ์ Android แท้ๆ จากผู้พัฒนา เน้นซอฟต์แวร์ที่ฉลาดและกล้องจากการประมวลผล Computational Photography',
+  sony: 'แบรนด์สำหรับผู้เชี่ยวชาญ เน้นการถ่ายภาพและวิดีโอแบบมืออาชีพ และจอภาพคุณภาพสูงระดับ 4K',
+}
+
+function getBrandPositioning(brand: string): string | null {
+  const brandKey = BRAND_KEYWORDS[brand.toLowerCase()] || brand.toLowerCase()
+  return BRAND_POSITIONING[brandKey] || null
+}
+
 // Cap results at maxPerBrand from any single brand so no one brand dominates
 // on general queries. Preserves rank order within the cap.
 function diversifyByBrand(docs: SpecResult[], maxPerBrand: number): SpecResult[] {
@@ -41,16 +61,19 @@ function diversifyByBrand(docs: SpecResult[], maxPerBrand: number): SpecResult[]
   })
 }
 
-function detectBrand(query: string): string | null {
+function detectBrands(query: string): string[] {
   const lower = query.toLowerCase()
+  const detected = new Set<string>()
   for (const [keyword, brand] of Object.entries(BRAND_KEYWORDS)) {
-    if (lower.includes(keyword)) return brand
+    if (lower.includes(keyword)) {
+      detected.add(brand)
+    }
   }
-  return null
+  return Array.from(detected)
 }
 
 const HIGHLIGHT_SECTION_PATTERN = /display|ram|storage|camera|battery|chipset|os/i
-const SPEC_SECTIONS_CHAR_CAP = 800
+const SPEC_SECTIONS_CHAR_CAP = RAG_CONFIG.LIMITS.SPEC_SECTIONS_CHAR_CAP
 
 function formatSpecSections(sections: Record<string, Record<string, string>>): string {
   const chunks: string[] = []
@@ -75,12 +98,18 @@ function formatSpecSections(sections: Record<string, Record<string, string>>): s
 }
 
 function formatSpecAsContext(doc: SpecResult, index: number): string {
-  const lines: string[] = [
-    `[${index + 1}] ${doc.brand} ${doc.model}`,
+  const positioning = getBrandPositioning(doc.brand)
+  
+  const contentLines: string[] = [
+    `Product: ${doc.brand} ${doc.model}`,
   ]
 
   if (doc.price_thb) {
-    lines.push(`ราคา: ${doc.price_thb.toLocaleString('th-TH')} บาท`)
+    contentLines.push(`ราคา: ${doc.price_thb.toLocaleString('th-TH')} บาท`)
+  }
+
+  if (positioning) {
+    contentLines.push(`แบรนด์ไฮไลท์: ${positioning}`)
   }
 
   const h = doc.highlights as Record<string, string>
@@ -95,21 +124,21 @@ function formatSpecAsContext(doc: SpecResult, index: number): string {
   }
 
   for (const [key, label] of Object.entries(highlightLabels)) {
-    if (h[key]) lines.push(`${label}: ${h[key]}`)
+    if (h[key]) contentLines.push(`${label}: ${h[key]}`)
   }
 
   const sectionsBlock = formatSpecSections(
     (doc.spec_sections ?? {}) as Record<string, Record<string, string>>
   )
-  if (sectionsBlock) lines.push(sectionsBlock)
+  if (sectionsBlock) contentLines.push(sectionsBlock)
 
-  lines.push(`ข้อมูลเพิ่มเติม: ${doc.source_url}`)
+  contentLines.push(`Source: ${doc.source_url}`)
 
-  return lines.join('\n')
+  return `<document index="${index + 1}" source="${doc.source_url}">\n${contentLines.join('\n')}\n</document>`
 }
 
 function assembleContext(docs: SpecResult[]): string {
-  return docs.map((doc, i) => formatSpecAsContext(doc, i)).join('\n\n---\n\n')
+  return docs.map((doc, i) => formatSpecAsContext(doc, i)).join('\n\n')
 }
 
 export interface RAGResult {
@@ -149,10 +178,11 @@ function buildFallbackAnswer(query: string, docs: SpecResult[]): string {
 }
 
 export async function runRAG(query: string): Promise<RAGResult> {
-  // Step 1: Multi-query expansion
-  const [queryVariations, queryEmbedding] = await Promise.all([
+  // Step 1: Multi-query expansion + intent detection
+  const [queryVariations, queryEmbedding, intent] = await Promise.all([
     expandQuery(query),
     embedText(query),
+    detectIntent(query),
   ])
 
   // Step 2: Embed all query variations + vector search in parallel
@@ -168,31 +198,45 @@ export async function runRAG(query: string): Promise<RAGResult> {
   // Step 3: Merge deduplicated results
   const merged = mergeResults(resultSets)
 
-  // Step 3b: Brand supplement — if query targets a specific brand but vector results
+  // Step 3b: Brand supplement — if query targets specific brands but vector results
   // are underrepresented, inject direct brand docs before reranking
-  const detectedBrand = detectBrand(query)
+  const detectedBrands = detectBrands(query)
   let docsForRerank = merged
 
-  if (detectedBrand) {
-    // Brand-specific query: supplement if fewer than 3 results for that brand
-    const brandCount = merged.filter(d => d.brand.toLowerCase().includes(detectedBrand)).length
-    if (brandCount < 3) {
-      const brandDocs = await brandSearch(detectedBrand, TOP_K_FETCH)
-      const scores = merged.map(d => d.score ?? 0)
-      const medianScore = scores.length > 0 ? scores[Math.floor(scores.length / 2)] : 0.5
-      const seen = new Set(merged.map(d => (d.source as { slug: string }).slug))
-      const newDocs = brandDocs
-        .filter(d => !seen.has((d.source as { slug: string }).slug))
-        .map(d => ({ ...d, score: medianScore }))
+  if (detectedBrands.length > 0) {
+    const brandDocsPromises = detectedBrands.map(brand => brandSearch(brand, 10))
+    const brandDocsSets = await Promise.all(brandDocsPromises)
+    const brandDocs = brandDocsSets.flat()
+
+    const seen = new Set(merged.map(d => (d.source as { slug: string }).slug))
+    const scores = merged.map(d => d.score ?? 0)
+    const medianScore = scores.length > 0 ? scores[Math.floor(scores.length / 2)] : 0.5
+
+    const newDocs = brandDocs
+      .filter(d => !seen.has((d.source as { slug: string }).slug))
+      .map(d => ({ ...d, score: medianScore }))
+
+    // Bypass aggressive diversification if user is explicitly comparing multiple brands
+    if (detectedBrands.length > 1) {
+      // Comparison query: allow up to N docs per brand
+      docsForRerank = diversifyByBrand([...merged, ...newDocs], RAG_CONFIG.BOOSTS.DIVERSIFY_COMPARE)
+    } else {
+      // Single brand query: allow up to N docs for that brand + others
       docsForRerank = [...merged, ...newDocs]
     }
   } else {
-    // General query: cap each brand at 3 docs so no single brand dominates
-    docsForRerank = diversifyByBrand(merged, 3)
+    // General query: cap each brand at N docs so no single brand dominates
+    docsForRerank = diversifyByBrand(merged, RAG_CONFIG.BOOSTS.DIVERSIFY_DEFAULT)
   }
 
   // Step 4: Rerank
-  const topDocs = await rerank(query, docsForRerank, TOP_K_CONTEXT)
+  const topDocs = await rerank(query, docsForRerank, TOP_K_CONTEXT, intent)
+
+  if (RAG_CONFIG.DEBUG_MODE) {
+    console.log(`[rag] Top ${topDocs.length} models selected. Top scores:`, 
+      topDocs.slice(0, 3).map(d => `${d.model} (${d.score?.toFixed(2)})`)
+    )
+  }
 
   // Step 5: Assemble context and generate answer
   const context = assembleContext(topDocs)
@@ -200,7 +244,7 @@ export async function runRAG(query: string): Promise<RAGResult> {
   try {
     answer = await generateAnswer(query, context)
   } catch (error) {
-    console.error('[rag] generateAnswer failed, falling back to retrieval-only response:', error)
+    if (RAG_CONFIG.DEBUG_MODE) console.error('[rag] LLM generation failed, using fallback.')
     answer = buildFallbackAnswer(query, topDocs)
   }
 
