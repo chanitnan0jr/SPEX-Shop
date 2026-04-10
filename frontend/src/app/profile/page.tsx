@@ -72,9 +72,15 @@ export default function ProfilePage() {
     return (
       <div className="min-h-screen flex items-center justify-center p-6 bg-background text-foreground">
         <motion.div 
-          initial={{ opacity: 0, y: 20 }}
-          animate={isShaking ? { x: [0, -10, 10, -10, 10, 0] } : { opacity: 1, y: 0 }}
-          transition={{ duration: isShaking ? 0.4 : 0.8 }}
+          initial={{ opacity: 0, y: 60, scale: 0.8, rotate: -2 }}
+          animate={isShaking ? { x: [0, -10, 10, -10, 10, 0] } : { opacity: 1, y: 0, scale: 1, rotate: 0 }}
+          transition={{ 
+            type: "spring",
+            stiffness: 120,
+            damping: 14,
+            mass: 0.8,
+            duration: isShaking ? 0.4 : undefined 
+          }}
           className="glass-card p-12 rounded-[3.5rem] max-w-md w-full border border-slate-200 dark:border-white/5 relative overflow-hidden shadow-2xl shadow-slate-300/50 dark:shadow-none bg-white/95 dark:bg-white/5 backdrop-blur-3xl"
         >
           {/* Animated Background Glow */}
@@ -91,103 +97,114 @@ export default function ProfilePage() {
           </div>
 
           <form onSubmit={handleSubmit} className="relative space-y-6">
-            <AnimatePresence>
-              {globalError && (
-                <motion.div 
-                  initial={{ opacity: 0, scale: 0.95 }}
-                  animate={{ opacity: 1, scale: 1 }}
-                  exit={{ opacity: 0, scale: 0.95 }}
-                  className="p-4 rounded-2xl bg-red-500/10 border border-red-500/20 text-[10px] font-black text-red-500 uppercase tracking-widest text-center flex items-center justify-center gap-2 mb-6"
-                >
-                  <ShieldAlert className="h-3.5 w-3.5" />
-                  {globalError}
-                </motion.div>
-              )}
+            <AnimatePresence mode="wait">
+              <motion.div
+                key={isLogin ? 'login-fields' : 'register-fields'}
+                initial={{ opacity: 0, x: isLogin ? -20 : 20 }}
+                animate={{ opacity: 1, x: 0 }}
+                exit={{ opacity: 0, x: isLogin ? 20 : -20 }}
+                transition={{ type: "spring", stiffness: 120, damping: 14 }}
+                className="space-y-6"
+              >
+                <AnimatePresence>
+                  {globalError && (
+                    <motion.div 
+                      initial={{ opacity: 0, scale: 0.95 }}
+                      animate={{ opacity: 1, scale: 1 }}
+                      exit={{ opacity: 0, scale: 0.95 }}
+                      className="p-4 rounded-2xl bg-red-500/10 border border-red-500/20 text-[10px] font-black text-red-500 uppercase tracking-widest text-center flex items-center justify-center gap-2 mb-6"
+                    >
+                      <ShieldAlert className="h-3.5 w-3.5" />
+                      {globalError}
+                    </motion.div>
+                  )}
+                </AnimatePresence>
+
+                {!isLogin && (
+                  <div className="space-y-2">
+                    <label className="text-[10px] font-black uppercase tracking-widest text-slate-500 ml-4">Full Name</label>
+                    <input 
+                      type="text" 
+                      required
+                      placeholder="Enter your name"
+                      className={`w-full bg-slate-50 dark:bg-slate-900 border rounded-2xl py-4 px-6 text-xs font-black tracking-widest text-slate-950 dark:text-white transition-all focus:outline-none focus:ring-4 ${
+                        errors.name 
+                          ? 'border-red-500/50 focus:border-red-500 focus:ring-red-500/10' 
+                          : 'border-slate-200 dark:border-white/10 focus:border-sky-500 dark:focus:border-cyan-500/50 focus:ring-sky-500/5'
+                      }`}
+                      value={form.name}
+                      onChange={(e) => {
+                        setForm({...form, name: e.target.value})
+                        if (errors.name) setErrors({...errors, name: ''})
+                      }}
+                    />
+                    {errors.name && <p className="text-[9px] font-black text-red-500 uppercase tracking-widest ml-4 mt-1">{errors.name}</p>}
+                  </div>
+                )}
+                
+                <div className="space-y-2">
+                  <label className="text-[10px] font-black uppercase tracking-widest text-slate-500 ml-4">Email Address</label>
+                  <input 
+                    type="email" 
+                    required
+                    placeholder="USER@NETWORK.NET"
+                    className={`w-full bg-slate-50 dark:bg-slate-900 border rounded-2xl py-4 px-6 text-xs font-black tracking-widest text-slate-950 dark:text-white transition-all focus:outline-none focus:ring-4 ${
+                      errors.email 
+                        ? 'border-red-500/50 focus:border-red-500 focus:ring-red-500/10' 
+                        : 'border-slate-200 dark:border-white/10 focus:border-sky-500 dark:focus:border-cyan-500/50 focus:ring-sky-500/5'
+                    }`}
+                    value={form.email}
+                    onChange={(e) => {
+                      setForm({...form, email: e.target.value})
+                      if (errors.email) setErrors({...errors, email: ''})
+                    }}
+                  />
+                  {errors.email && <p className="text-[9px] font-black text-red-500 uppercase tracking-widest ml-4 mt-1">{errors.email}</p>}
+                </div>
+
+                <div className="space-y-2">
+                  <label className="text-[10px] font-black uppercase tracking-widest text-slate-500 ml-4">Password</label>
+                  <input 
+                    type="password" 
+                    required
+                    placeholder="••••••••"
+                    className={`w-full bg-slate-50 dark:bg-slate-900 border rounded-2xl py-4 px-6 text-xs font-black tracking-widest text-slate-950 dark:text-white transition-all focus:outline-none focus:ring-4 ${
+                      errors.password 
+                        ? 'border-red-500/50 focus:border-red-500 focus:ring-red-500/10' 
+                        : 'border-slate-200 dark:border-white/10 focus:border-sky-500 dark:focus:border-cyan-500/50 focus:ring-sky-500/5'
+                    }`}
+                    value={form.password}
+                    onChange={(e) => {
+                      setForm({...form, password: e.target.value})
+                      if (errors.password) setErrors({...errors, password: ''})
+                    }}
+                  />
+                  {errors.password && <p className="text-[9px] font-black text-red-500 uppercase tracking-widest ml-4 mt-1">{errors.password}</p>}
+                </div>
+
+                {!isLogin && (
+                  <div className="space-y-2">
+                    <label className="text-[10px] font-black uppercase tracking-widest text-slate-500 ml-4">Verify Password</label>
+                    <input 
+                      type="password" 
+                      required
+                      placeholder="••••••••"
+                      className={`w-full bg-slate-50 dark:bg-slate-900 border rounded-2xl py-4 px-6 text-xs font-black tracking-widest text-slate-950 dark:text-white transition-all focus:outline-none focus:ring-4 ${
+                        errors.confirmPassword 
+                          ? 'border-red-500/50 focus:border-red-500 focus:ring-red-500/10' 
+                          : 'border-slate-200 dark:border-white/10 focus:border-sky-500 dark:focus:border-cyan-500/50 focus:ring-sky-500/5'
+                      }`}
+                      value={form.confirmPassword}
+                      onChange={(e) => {
+                        setForm({...form, confirmPassword: e.target.value})
+                        if (errors.confirmPassword) setErrors({...errors, confirmPassword: ''})
+                      }}
+                    />
+                    {errors.confirmPassword && <p className="text-[9px] font-black text-red-500 uppercase tracking-widest ml-4 mt-1">{errors.confirmPassword}</p>}
+                  </div>
+                )}
+              </motion.div>
             </AnimatePresence>
-
-            {!isLogin && (
-              <div className="space-y-2">
-                <label className="text-[10px] font-black uppercase tracking-widest text-slate-500 ml-4">Full Name</label>
-                <input 
-                  type="text" 
-                  required
-                  placeholder="Enter your name"
-                  className={`w-full bg-slate-50 dark:bg-slate-900 border rounded-2xl py-4 px-6 text-xs font-black tracking-widest text-slate-950 dark:text-white transition-all focus:outline-none focus:ring-4 ${
-                    errors.name 
-                      ? 'border-red-500/50 focus:border-red-500 focus:ring-red-500/10' 
-                      : 'border-slate-200 dark:border-white/10 focus:border-sky-500 dark:focus:border-cyan-500/50 focus:ring-sky-500/5'
-                  }`}
-                  value={form.name}
-                  onChange={(e) => {
-                    setForm({...form, name: e.target.value})
-                    if (errors.name) setErrors({...errors, name: ''})
-                  }}
-                />
-                {errors.name && <p className="text-[9px] font-black text-red-500 uppercase tracking-widest ml-4 mt-1">{errors.name}</p>}
-              </div>
-            )}
-            
-            <div className="space-y-2">
-              <label className="text-[10px] font-black uppercase tracking-widest text-slate-500 ml-4">Email Address</label>
-              <input 
-                type="email" 
-                required
-                placeholder="USER@NETWORK.NET"
-                className={`w-full bg-slate-50 dark:bg-slate-900 border rounded-2xl py-4 px-6 text-xs font-black tracking-widest text-slate-950 dark:text-white transition-all focus:outline-none focus:ring-4 ${
-                  errors.email 
-                    ? 'border-red-500/50 focus:border-red-500 focus:ring-red-500/10' 
-                    : 'border-slate-200 dark:border-white/10 focus:border-sky-500 dark:focus:border-cyan-500/50 focus:ring-sky-500/5'
-                }`}
-                value={form.email}
-                onChange={(e) => {
-                  setForm({...form, email: e.target.value})
-                  if (errors.email) setErrors({...errors, email: ''})
-                }}
-              />
-              {errors.email && <p className="text-[9px] font-black text-red-500 uppercase tracking-widest ml-4 mt-1">{errors.email}</p>}
-            </div>
-
-            <div className="space-y-2">
-              <label className="text-[10px] font-black uppercase tracking-widest text-slate-500 ml-4">Password</label>
-              <input 
-                type="password" 
-                required
-                placeholder="••••••••"
-                className={`w-full bg-slate-50 dark:bg-slate-900 border rounded-2xl py-4 px-6 text-xs font-black tracking-widest text-slate-950 dark:text-white transition-all focus:outline-none focus:ring-4 ${
-                  errors.password 
-                    ? 'border-red-500/50 focus:border-red-500 focus:ring-red-500/10' 
-                    : 'border-slate-200 dark:border-white/10 focus:border-sky-500 dark:focus:border-cyan-500/50 focus:ring-sky-500/5'
-                }`}
-                value={form.password}
-                onChange={(e) => {
-                  setForm({...form, password: e.target.value})
-                  if (errors.password) setErrors({...errors, password: ''})
-                }}
-              />
-              {errors.password && <p className="text-[9px] font-black text-red-500 uppercase tracking-widest ml-4 mt-1">{errors.password}</p>}
-            </div>
-
-            {!isLogin && (
-              <div className="space-y-2">
-                <label className="text-[10px] font-black uppercase tracking-widest text-slate-500 ml-4">Verify Password</label>
-                <input 
-                  type="password" 
-                  required
-                  placeholder="••••••••"
-                  className={`w-full bg-slate-50 dark:bg-slate-900 border rounded-2xl py-4 px-6 text-xs font-black tracking-widest text-slate-950 dark:text-white transition-all focus:outline-none focus:ring-4 ${
-                    errors.confirmPassword 
-                      ? 'border-red-500/50 focus:border-red-500 focus:ring-red-500/10' 
-                      : 'border-slate-200 dark:border-white/10 focus:border-sky-500 dark:focus:border-cyan-500/50 focus:ring-sky-500/5'
-                  }`}
-                  value={form.confirmPassword}
-                  onChange={(e) => {
-                    setForm({...form, confirmPassword: e.target.value})
-                    if (errors.confirmPassword) setErrors({...errors, confirmPassword: ''})
-                  }}
-                />
-                {errors.confirmPassword && <p className="text-[9px] font-black text-red-500 uppercase tracking-widest ml-4 mt-1">{errors.confirmPassword}</p>}
-              </div>
-            )}
 
             <button 
               type="submit" 
@@ -198,7 +215,7 @@ export default function ProfilePage() {
             </button>
           </form>
 
-          <div className="mt-10 text-center">
+          <div className="relative z-20 mt-10 text-center">
             <button 
               onClick={() => {
                 setIsLogin(!isLogin)
@@ -221,7 +238,12 @@ export default function ProfilePage() {
       <div className="max-w-7xl mx-auto grid grid-cols-1 lg:grid-cols-3 gap-12">
         {/* Left: User Profile Info */}
         <div className="space-y-6">
-          <motion.div initial={{ opacity: 0, x: -20 }} animate={{ opacity: 1, x: 0 }} className="glass-card p-10 rounded-[3.5rem] border border-sky-500/20 dark:border-cyan-500/20 shadow-2xl shadow-slate-200/40 dark:shadow-[0_0_30px_rgba(0,243,255,0.05)] bg-white/70 dark:bg-white/5 backdrop-blur-3xl">
+          <motion.div 
+            initial={{ opacity: 0, x: -50, scale: 0.95 }} 
+            animate={{ opacity: 1, x: 0, scale: 1 }} 
+            transition={{ type: "spring", stiffness: 120, damping: 14, mass: 0.8 }}
+            className="glass-card p-10 rounded-[3.5rem] border border-sky-500/20 dark:border-cyan-500/20 shadow-2xl shadow-slate-200/40 dark:shadow-[0_0_30px_rgba(0,243,255,0.05)] bg-white/70 dark:bg-white/5 backdrop-blur-3xl"
+          >
             <div className="flex flex-col items-center text-center space-y-6">
               <div className="h-24 w-24 bg-slate-50 dark:bg-slate-900 rounded-[2rem] flex items-center justify-center border-2 border-sky-500/30 dark:border-cyan-500/30 shadow-xl shadow-sky-500/10 dark:shadow-[0_0_20px_rgba(0,243,255,0.2)]">
                 <User className="h-10 w-10 text-sky-600 dark:text-cyan-400" />
@@ -275,9 +297,15 @@ export default function ProfilePage() {
             {[1, 2].map((i) => (
               <motion.div 
                 key={i}
-                initial={{ opacity: 0, y: 10 }} 
-                animate={{ opacity: 1, y: 0 }} 
-                transition={{ delay: i * 0.1 }}
+                initial={{ opacity: 0, y: 50, scale: 0.9 }} 
+                animate={{ opacity: 1, y: 0, scale: 1 }} 
+                transition={{ 
+                  type: "spring", 
+                  stiffness: 120, 
+                  damping: 14, 
+                  mass: 0.8,
+                  delay: i * 0.1 
+                }}
                 className="glass-card p-8 rounded-[3rem] group hover:border-cyan-500/20 transition-all"
               >
                 <div className="flex items-start justify-between mb-6">
