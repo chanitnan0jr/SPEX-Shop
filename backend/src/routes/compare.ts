@@ -16,8 +16,8 @@ router.get('/compare', async (req: Request, res: Response) => {
     .map((m) => m.trim())
     .filter(Boolean)
 
-  if (modelNames.length < 2) {
-    res.status(400).json({ error: 'At least 2 model names are required' })
+  if (modelNames.length < 1) {
+    res.status(400).json({ error: 'At least 1 model name is required' })
     return
   }
 
