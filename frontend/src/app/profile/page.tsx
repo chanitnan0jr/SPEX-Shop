@@ -11,6 +11,7 @@ export default function ProfilePage() {
   const [loading, setLoading] = useState(false)
   const [form, setForm] = useState({ name: '', email: '', password: '', confirmPassword: '' })
   const [errors, setErrors] = useState<Record<string, string>>({})
+  const [globalError, setGlobalError] = useState<string | null>(null)
   const [isShaking, setIsShaking] = useState(false)
 
   const validateForm = () => {
@@ -22,9 +23,9 @@ export default function ProfilePage() {
     }
 
     if (!form.email.trim()) {
-      newErrors.email = 'Neural address required'
+      newErrors.email = 'Account email required'
     } else if (!emailRegex.test(form.email)) {
-      newErrors.email = 'Invalid neural address format'
+      newErrors.email = 'Invalid email format'
     }
 
     if (!form.password) {
@@ -47,6 +48,7 @@ export default function ProfilePage() {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
+    setGlobalError(null)
     if (!validateForm()) return
 
     setLoading(true)
@@ -56,8 +58,11 @@ export default function ProfilePage() {
       } else {
         await register(form)
       }
-    } catch (err) {
-      alert('Neural sync failed. Access denied.')
+    } catch (err: any) {
+      const msg = err?.response?.data?.error ?? 'Access denied. Verify your credentials.'
+      setGlobalError(msg)
+      setIsShaking(true)
+      setTimeout(() => setIsShaking(false), 500)
     } finally {
       setLoading(false)
     }
@@ -82,11 +87,24 @@ export default function ProfilePage() {
               {isLogin ? 'Log In' : 'Register'}
             </h1>
             <p className="text-slate-400 font-bold uppercase tracking-[0.2em] text-[10px]">
-              Access your SPEX-Shop account
-            </p>
+              </p>
           </div>
 
           <form onSubmit={handleSubmit} className="relative space-y-6">
+            <AnimatePresence>
+              {globalError && (
+                <motion.div 
+                  initial={{ opacity: 0, scale: 0.95 }}
+                  animate={{ opacity: 1, scale: 1 }}
+                  exit={{ opacity: 0, scale: 0.95 }}
+                  className="p-4 rounded-2xl bg-red-500/10 border border-red-500/20 text-[10px] font-black text-red-500 uppercase tracking-widest text-center flex items-center justify-center gap-2 mb-6"
+                >
+                  <ShieldAlert className="h-3.5 w-3.5" />
+                  {globalError}
+                </motion.div>
+              )}
+            </AnimatePresence>
+
             {!isLogin && (
               <div className="space-y-2">
                 <label className="text-[10px] font-black uppercase tracking-widest text-slate-500 ml-4">Full Name</label>

@@ -10,7 +10,7 @@ export default function NotFound() {
     <div className="relative min-h-[calc(100vh-72px)] w-full flex items-center justify-center overflow-hidden px-6">
       {/* Massive Architectural 404 Watermark */}
       <div className="absolute inset-0 flex items-center justify-center pointer-events-none select-none">
-        <h1 className="text-[20rem] md:text-[32rem] font-black text-slate-200/40 dark:text-white/3 tracking-tighter">
+        <h1 className="text-[20rem] md:text-[32rem] font-black text-slate-900/[0.03] dark:text-white/[0.03] tracking-tighter transition-colors">
           404
         </h1>
       </div>
