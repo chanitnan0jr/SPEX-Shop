@@ -24,7 +24,10 @@
       },
       "package": "com.spexshop.mobile",
       "edgeToEdgeEnabled": true,
-      "usesCleartextTraffic": true
+      "usesCleartextTraffic": true,
+      "enableProguardInReleaseBuilds": true,
+      "enableShrinkResourcesInReleaseBuilds": true,
+      "supportedAbis": ["arm64-v8a"]
     },
     "web": {
       "bundler": "metro",
@@ -36,6 +39,12 @@
     ],
     "experiments": {
       "typedRoutes": true
+    },
+    "extra": {
+      "router": {},
+      "eas": {
+        "projectId": "2014e764-d88d-4d15-9927-03c21b85a462"
+      }
     }
   }
 }

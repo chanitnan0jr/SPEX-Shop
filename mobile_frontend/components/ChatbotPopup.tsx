@@ -108,7 +108,7 @@ export default function ChatbotPopup({ visible, onClose }: ChatbotPopupProps) {
   
   // Reanimated Shared Values
   const expansion = useSharedValue(1)
-  const [contentHeight, setContentHeight] = useState(0)
+  const contentHeightSV = useSharedValue(0)
 
   useEffect(() => {
     if (visible) {
@@ -161,8 +161,13 @@ export default function ChatbotPopup({ visible, onClose }: ChatbotPopupProps) {
   }
 
   const headerAnimatedStyle = useAnimatedStyle(() => {
+    const h = contentHeightSV.value
+    if (h === 0) {
+      // Not measured yet — show naturally so onLayout can fire
+      return { opacity: 1, overflow: 'hidden' }
+    }
     return {
-      height: interpolate(expansion.value, [0, 1], [0, contentHeight]),
+      height: interpolate(expansion.value, [0, 1], [0, h]),
       opacity: interpolate(expansion.value, [0, 0.5, 1], [0, 0, 1]),
       overflow: 'hidden',
     }
@@ -388,12 +393,14 @@ export default function ChatbotPopup({ visible, onClose }: ChatbotPopupProps) {
   }
 
   return (
-    <Modal visible={visible} animationType="fade" transparent onRequestClose={onClose}>
-      <View style={styles.overlay}>
+    <Modal visible={visible} animationType="fade" transparent statusBarTranslucent onRequestClose={onClose}>
+      <KeyboardAvoidingView
+        behavior={Platform.OS === 'ios' ? 'padding' : 'padding'}
+        style={styles.overlay}
+        keyboardVerticalOffset={Platform.OS === 'android' ? 0 : 0}
+      >
         <TouchableOpacity style={styles.dismissArea} activeOpacity={1} onPress={onClose} />
-        <KeyboardAvoidingView 
-          behavior={Platform.OS === 'ios' ? 'padding' : 'height'} 
-          style={[styles.popupContainer, { backgroundColor: currentColors.surface, borderColor: currentColors.border }]}
+        <View style={[styles.popupContainer, { backgroundColor: currentColors.surface, borderColor: currentColors.border }]}
         >
           
           {/* SECTION 1: COLLAPSIBLE HEADER */}
@@ -418,7 +425,7 @@ export default function ChatbotPopup({ visible, onClose }: ChatbotPopupProps) {
                 style={styles.expandedContent}
                 onLayout={(e) => {
                   const h = e.nativeEvent.layout.height
-                  if (h > 0 && h !== contentHeight) setContentHeight(h)
+                  if (h > 0) contentHeightSV.value = h
                 }}
               >
                 <View style={styles.badgeRow}>
@@ -691,8 +698,8 @@ export default function ChatbotPopup({ visible, onClose }: ChatbotPopupProps) {
               </View>
             </View>
           )}
-        </KeyboardAvoidingView>
-      </View>
+        </View>
+      </KeyboardAvoidingView>
     </Modal>
   )
 }

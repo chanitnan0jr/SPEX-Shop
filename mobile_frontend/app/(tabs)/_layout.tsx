@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from 'react'
 import { Tabs, usePathname } from 'expo-router'
 import { Platform, StyleSheet, View, Text, TouchableOpacity } from 'react-native'
+import { useSafeAreaInsets } from 'react-native-safe-area-context'
 import * as Haptics from 'expo-haptics'
 import Animated, { 
   useSharedValue, 
@@ -92,6 +93,7 @@ export default function TabsLayout() {
   const pathname = usePathname()
   const { language, theme } = useUiPreferences()
   const currentColors = theme === 'dark' ? Colors.dark : Colors.light
+  const insets = useSafeAreaInsets()
 
   const isCartPage = pathname === '/cart' || pathname === '/(tabs)/cart'
 
@@ -102,17 +104,19 @@ export default function TabsLayout() {
   }
 
   return (
-    <>
+    <View style={styles.rootContainer}>
     <Tabs
       screenOptions={{
         headerShown: false,
-        tabBarStyle: [
+        tabBarStyle: StyleSheet.flatten([
           styles.tabBar,
           {
+            height: Platform.OS === 'ios' ? 88 : 70 + insets.bottom,
+            paddingBottom: Platform.OS === 'android' ? insets.bottom : 0,
             shadowColor: theme === 'dark' ? '#000' : 'rgba(0, 0, 0, 0.4)',
             shadowOpacity: theme === 'dark' ? 0.4 : 0.15,
           }
-        ],
+        ]),
         tabBarShowLabel: false,
         tabBarActiveTintColor: Colors.primary,
         tabBarInactiveTintColor: theme === 'dark' ? currentColors.textMuted : 'rgba(255, 255, 255, 0.4)',
@@ -205,8 +209,10 @@ export default function TabsLayout() {
       />
     </Tabs>
 
-    <TouchableOpacity 
-      style={styles.floatingChatBtn}
+    <TouchableOpacity
+      style={[styles.floatingChatBtn, {
+        bottom: Platform.OS === 'ios' ? 110 : 90 + insets.bottom,
+      }]}
       onPress={() => setChatbotVisible(true)}
       activeOpacity={0.8}
     >
@@ -220,11 +226,14 @@ export default function TabsLayout() {
       visible={chatbotVisible} 
       onClose={() => setChatbotVisible(false)} 
     />
-    </>
+    </View>
   )
 }
 
 const styles = StyleSheet.create({
+  rootContainer: {
+    flex: 1,
+  },
   tabBar: {
     backgroundColor: 'transparent',
     borderTopWidth: 0,
@@ -262,7 +271,6 @@ const styles = StyleSheet.create({
   floatingChatBtn: {
     position: 'absolute',
     right: 20,
-    bottom: Platform.OS === 'ios' ? 110 : 90,
     width: 56,
     height: 56,
     borderRadius: 28,
