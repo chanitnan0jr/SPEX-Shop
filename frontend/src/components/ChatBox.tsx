@@ -83,7 +83,7 @@ export function ChatBox() {
       const newId = Date.now().toString()
       const firstSession: ChatSession = {
         id: newId,
-        title: pickText(language, { en: 'New Conversation', th: 'การสนทนาใหม่' }),
+        title: `${newId} - ` + pickText(language, { en: 'New Conversation', th: 'การสนทนาใหม่' }),
         createdAt: Date.now(),
       }
       setSessions([firstSession])
@@ -161,7 +161,7 @@ export function ChatBox() {
     const newId = Date.now().toString()
     const newSession: ChatSession = {
       id: newId,
-      title: pickText(language, { en: 'New Chat', th: 'แชทใหม่' }) + ` ${sessions.length + 1}`,
+      title: `${newId} - ` + pickText(language, { en: 'New Chat', th: 'แชทใหม่' }) + ` ${sessions.length + 1}`,
       createdAt: Date.now(),
     }
     const updatedSessions = [newSession, ...sessions]
@@ -586,15 +586,27 @@ export function ChatBox() {
                           })}
                         </p>
                       </button>
-                      <button
-                        onClick={() => {
-                          setEditingSessionId(s.id)
-                          setTempTitle(s.title)
-                        }}
-                        className="opacity-0 group-hover:opacity-100 flex h-9 w-9 items-center justify-center rounded-full text-slate-400 hover:bg-indigo-50 hover:text-indigo-500 dark:hover:bg-white/10 transition-all"
-                      >
-                        <Edit2 className="h-4 w-4" />
-                      </button>
+                      <div className="opacity-0 group-hover:opacity-100 flex items-center gap-1">
+                        <button
+                          onClick={() => {
+                            setEditingSessionId(s.id)
+                            setTempTitle(s.title)
+                          }}
+                          className="flex h-9 w-9 items-center justify-center rounded-full text-slate-400 hover:bg-sky-50 hover:text-sky-500 dark:hover:bg-white/10 transition-all"
+                        >
+                          <Edit2 className="h-4 w-4" />
+                        </button>
+                        <button
+                          onClick={(e) => {
+                            e.stopPropagation()
+                            setActiveSessionId(s.id)
+                            setShowDeleteConfirm(true)
+                          }}
+                          className="flex h-9 w-9 items-center justify-center rounded-full text-slate-400 hover:bg-rose-50 hover:text-rose-500 dark:hover:bg-white/10 transition-all"
+                        >
+                          <Trash2 className="h-4 w-4" />
+                        </button>
+                      </div>
                     </div>
                   )}
                 </div>
@@ -750,23 +762,8 @@ export function ChatBox() {
                   >
                     <PlusCircle className="h-4 w-4" />
                   </button>
-                  <button
-                    type="button"
-                    onClick={() => setShowDeleteConfirm(true)}
-                    className="flex h-9 w-9 items-center justify-center rounded-full border border-slate-200 bg-white text-slate-500 transition-all hover:bg-slate-50 hover:text-rose-500 dark:border-white/10 dark:bg-white/5 dark:text-slate-400 dark:hover:bg-white/10 dark:hover:text-rose-400 cursor-pointer"
-                    title={pickText(language, { en: 'Delete Current', th: 'ลบแชทนี้' })}
-                  >
-                    <Trash2 className="h-4 w-4" />
-                  </button>
                 </div>
               </div>
-
-              <p className="px-2 text-[9px] font-bold uppercase tracking-widest text-slate-400">
-                {pickText(language, {
-                  en: 'AI Source: Kaggle Dataset',
-                  th: 'ข้อมูลจาก Kaggle',
-                })}
-              </p>
             </div>
           </form>
         </div>

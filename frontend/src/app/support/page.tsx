@@ -10,7 +10,7 @@ export default function SupportPage() {
     <div className="relative min-h-[calc(100vh-120px)] w-full flex items-center justify-center overflow-hidden px-6">
       {/* Architectural Background */}
       <div className="absolute inset-0 flex items-center justify-center pointer-events-none select-none">
-        <h1 className="text-[12rem] md:text-[20rem] font-black text-slate-900/[0.03] dark:text-white/[0.03] tracking-tighter transition-colors uppercase">
+        <h1 className="text-[12rem] md:text-[20rem] font-black text-slate-900/3 dark:text-white/3 tracking-tighter transition-colors uppercase">
           Support
         </h1>
       </div>

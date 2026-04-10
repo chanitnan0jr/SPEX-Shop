@@ -35,7 +35,12 @@ export default function ShopPage() {
   const brands = ['All', 'Apple', 'Samsung', 'Xiaomi', 'Vivo', 'Oppo', 'Google']
 
   return (
-    <div className="min-h-screen bg-background text-foreground p-6 md:p-12">
+    <motion.div 
+      initial={{ opacity: 0, y: 20 }}
+      animate={{ opacity: 1, y: 0 }}
+      transition={{ duration: 0.5 }}
+      className="min-h-screen bg-background text-foreground p-6 md:p-12"
+    >
       {/* Search & Filter Header */}
       <div className="max-w-7xl mx-auto space-y-8 mb-12">
         <header className="flex flex-col md:flex-row md:items-end justify-between gap-6">
@@ -112,7 +117,7 @@ export default function ShopPage() {
           </div>
         )}
       </div>
-    </div>
+    </motion.div>
   )
 }
 

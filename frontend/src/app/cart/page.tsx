@@ -50,7 +50,12 @@ export default function CartPage() {
   }
 
   return (
-    <div className="min-h-screen bg-background text-foreground p-6 md:p-12">
+    <motion.div 
+      initial={{ opacity: 0, y: 20 }}
+      animate={{ opacity: 1, y: 0 }}
+      transition={{ duration: 0.5 }}
+      className="min-h-screen bg-background text-foreground p-6 md:p-12"
+    >
       <div className="max-w-7xl mx-auto">
         <header className="mb-12 space-y-6">
           <div className="space-y-4 px-4">
@@ -180,6 +185,6 @@ export default function CartPage() {
           </div>
         </div>
       </div>
-    </div>
+    </motion.div>
   )
 }

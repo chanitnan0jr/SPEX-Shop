@@ -17,13 +17,48 @@ const api = axios.create({
 
 // Add debugging interceptors to track "Why it's like this" in the browser
 api.interceptors.request.use((config) => {
+  if (typeof window !== 'undefined') {
+    const token = localStorage.getItem('specbot_token')
+    if (token) {
+      config.headers.Authorization = `Bearer ${token}`
+    }
+  }
   console.log(`[api] Request: ${config.method?.toUpperCase()} ${config.url}`)
   return config
 })
 
 api.interceptors.response.use(
   (response) => response,
-  (error) => {
+  async (error) => {
+    const originalRequest = error.config
+    
+    // Handle 401 Unauthorized - Attempt Token Refresh
+    if (error.response?.status === 401 && !originalRequest._retry) {
+      originalRequest._retry = true
+      
+      try {
+        const refreshToken = localStorage.getItem('specbot_refresh_token')
+        if (!refreshToken) throw new Error('No refresh token available')
+        
+        // Use a clean axios instance to avoid infinite loops if refresh also 401s
+        const { data } = await axios.post(`${baseURL}/auth/refresh`, { refreshToken })
+        
+        // Update storage
+        localStorage.setItem('specbot_token', data.accessToken)
+        localStorage.setItem('specbot_refresh_token', data.refreshToken)
+        
+        // Retry the original request
+        originalRequest.headers.Authorization = `Bearer ${data.accessToken}`
+        return api(originalRequest)
+      } catch (refreshError) {
+        // Refresh failed - clean up and propagate
+        localStorage.removeItem('specbot_token')
+        localStorage.removeItem('specbot_refresh_token')
+        localStorage.removeItem('specbot_user')
+        return Promise.reject(refreshError)
+      }
+    }
+
     if (error.response) {
       console.error(`[api] Error ${error.response.status}:`, error.response.data)
     } else if (error.request) {
@@ -176,12 +211,18 @@ export const getOrdersApi = async (): Promise<any[]> => {
 }
 
 // Auth APIs
-export const loginApi = async (credentials: any): Promise<{ token: string; user: any }> => {
-  const { data } = await api.post('/auth/login', credentials)
+export interface AuthResponse {
+  accessToken: string
+  refreshToken: string
+  user: any
+}
+
+export const loginApi = async (credentials: any): Promise<AuthResponse> => {
+  const { data } = await api.post<AuthResponse>('/auth/login', credentials)
   return data
 }
 
-export const registerApi = async (userData: any): Promise<{ token: string; user: any }> => {
-  const { data } = await api.post('/auth/register', userData)
+export const registerApi = async (userData: any): Promise<AuthResponse> => {
+  const { data } = await api.post<AuthResponse>('/auth/register', userData)
   return data
 }
