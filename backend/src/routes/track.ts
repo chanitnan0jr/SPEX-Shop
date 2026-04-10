@@ -27,6 +27,7 @@ router.get('/track/count', async (req: Request, res: Response) => {
     })
     res.json({ total, today })
   } catch (error) {
+    console.error('[track] Failed to fetch visit stats:', error)
     res.status(500).json({ error: 'Failed to fetch visit stats' })
   }
 })

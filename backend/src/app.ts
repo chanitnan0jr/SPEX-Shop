@@ -30,6 +30,8 @@ app.use(cors({
     // Allow requests with no origin (like mobile apps or curl)
     if (!origin) return callback(null, true)
     
+    console.log(`[cors] Request from origin: ${origin}`)
+
     // In development or if specifically whitelisted, allow it
     const isAllowed = allowedOrigins.indexOf(origin) !== -1 || process.env.NODE_ENV !== 'production'
     
