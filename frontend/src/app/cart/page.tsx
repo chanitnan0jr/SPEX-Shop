@@ -210,7 +210,7 @@ export default function CartPage() {
                   <motion.div animate={{ rotate: 360 }} transition={{ repeat: Infinity, duration: 1 }} className="h-5 w-5 border-2 border-white/30 border-t-white rounded-full" />
                 ) : (
                   <>
-                    AUTHORIZE EXCHANGE
+                    AUTHORIZE
                     <ArrowRight className="h-5 w-5" />
                   </>
                 )}

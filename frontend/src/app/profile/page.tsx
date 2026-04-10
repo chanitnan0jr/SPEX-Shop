@@ -97,13 +97,13 @@ export default function ProfilePage() {
           </div>
 
           <form onSubmit={handleSubmit} className="relative space-y-6">
-            <AnimatePresence mode="wait">
+            <AnimatePresence mode="popLayout">
               <motion.div
                 key={isLogin ? 'login-fields' : 'register-fields'}
-                initial={{ opacity: 0, x: isLogin ? -20 : 20 }}
+                initial={{ opacity: 0, x: isLogin ? -10 : 10 }}
                 animate={{ opacity: 1, x: 0 }}
-                exit={{ opacity: 0, x: isLogin ? 20 : -20 }}
-                transition={{ type: "spring", stiffness: 120, damping: 14 }}
+                exit={{ opacity: 0, x: isLogin ? 10 : -10 }}
+                transition={{ type: "spring", stiffness: 300, damping: 25 }}
                 className="space-y-6"
               >
                 <AnimatePresence>
