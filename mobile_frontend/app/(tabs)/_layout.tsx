@@ -18,7 +18,8 @@ import {
   BarChart3,
   Bot,
   MessagesSquare,
-  ShoppingCart
+  ShoppingCart,
+  Home
 } from 'lucide-react-native'
 import { Colors, Fonts, Radius, Spacing } from '../../lib/constants'
 import ChatbotPopup from '../../components/ChatbotPopup'
@@ -139,7 +140,7 @@ export default function TabsLayout() {
         options={{
           title: 'Home',
           tabBarIcon: ({ focused }) => (
-            <TabIcon focused={focused} Icon={LayoutGrid} label="HOME" />
+            <TabIcon focused={focused} Icon={Home} label="HOME" />
           ),
         }}
         listeners={{

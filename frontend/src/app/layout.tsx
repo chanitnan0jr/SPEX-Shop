@@ -17,7 +17,7 @@ const ibmPlexThai = IBM_Plex_Sans_Thai({
 })
 
 export const metadata: Metadata = {
-  title: 'SpecBot',
+  title: 'SPEX-Shop',
   description: 'Thai smartphone comparison assistant with AI search and live spec exploration',
 }
 

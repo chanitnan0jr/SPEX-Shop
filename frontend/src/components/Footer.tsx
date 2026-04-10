@@ -10,9 +10,9 @@ export function Footer() {
   return (
     <footer className="mt-16 border-t border-slate-200/80 bg-white/40 pb-12 pt-10 backdrop-blur-md dark:border-white/10 dark:bg-black/20">
       <div className="mx-auto max-w-[1440px] px-6 text-center md:px-8">
-        <p className="font-heading text-sm font-extrabold tracking-[0.2em] text-slate-900 uppercase dark:text-white leading-none">SpecBot</p>
+        <p className="font-heading text-sm font-extrabold tracking-[0.2em] text-slate-900 uppercase dark:text-white leading-none">SPEX-SHOP</p>
         <p className="mt-4 text-xs font-medium text-slate-500 dark:text-slate-400">
-          © {year} SpecBot. {pickText(language, { 
+          © {year} SPEX-SHOP. {pickText(language, { 
             en: 'All rights reserved.', 
             th: 'สงวนลิขสิทธิ์ทั้งหมด' 
           })}

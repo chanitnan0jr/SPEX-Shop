@@ -146,3 +146,42 @@ export const submitFeedbackApi = async (params: {
   const { data } = await api.post('/feedback', params)
   return data
 }
+
+// Product APIs
+export const getProductsApi = async (params?: { brand?: string; page?: number; limit?: number }): Promise<{ products: Spec[]; total: number }> => {
+  const { data } = await api.get('/products', { params })
+  return data
+}
+
+// Cart APIs
+export const getCartApi = async (): Promise<any> => {
+  const { data } = await api.get('/cart')
+  return data
+}
+
+export const addToCartApi = async (productId: string, quantity: number = 1): Promise<any> => {
+  const { data } = await api.post('/cart', { productId, quantity })
+  return data
+}
+
+// Order APIs
+export const createOrderApi = async (orderData: any): Promise<any> => {
+  const { data } = await api.post('/orders', orderData)
+  return data
+}
+
+export const getOrdersApi = async (): Promise<any[]> => {
+  const { data } = await api.get('/orders')
+  return data
+}
+
+// Auth APIs
+export const loginApi = async (credentials: any): Promise<{ token: string; user: any }> => {
+  const { data } = await api.post('/auth/login', credentials)
+  return data
+}
+
+export const registerApi = async (userData: any): Promise<{ token: string; user: any }> => {
+  const { data } = await api.post('/auth/register', userData)
+  return data
+}

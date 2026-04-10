@@ -60,22 +60,52 @@ export default function RegisterScreen() {
     opacity: headerOpacity.value,
   }))
 
+  const shakeX = useSharedValue(0)
+
   const formStyle = useAnimatedStyle(() => ({
     opacity: formOpacity.value,
-    transform: [{ translateY: formTranslateY.value }],
   }))
 
+  const shakeStyle = useAnimatedStyle(() => ({
+    transform: [
+      { translateX: shakeX.value },
+      { translateY: formTranslateY.value }
+    ],
+  }))
+
+  const triggerShake = () => {
+    shakeX.value = withTiming(-10, { duration: 50 }, () => {
+      shakeX.value = withTiming(10, { duration: 50 }, () => {
+        shakeX.value = withTiming(-10, { duration: 50 }, () => {
+          shakeX.value = withTiming(10, { duration: 50 }, () => {
+             shakeX.value = withTiming(0, { duration: 50 });
+          });
+        });
+      });
+    });
+  }
+
   const handleRegister = async () => {
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
+
     if (!name.trim() || !email.trim() || !password) {
       setError('All fields are mandatory.')
+      triggerShake()
+      return
+    }
+    if (!emailRegex.test(email.trim())) {
+      setError('Invalid identity address format.')
+      triggerShake()
       return
     }
     if (password.length < 6) {
       setError('Secure key must be 6+ chars.')
+      triggerShake()
       return
     }
     if (password !== confirmPassword) {
       setError('Key disparity detected.')
+      triggerShake()
       return
     }
     setError(null)
@@ -125,13 +155,13 @@ export default function RegisterScreen() {
           >
             <Animated.View style={[styles.header, headerStyle]}>
               <View style={styles.badge}>
-                <Text style={styles.badgeText}>DATA PROVISIONING V1.0</Text>
+                <Text style={styles.badgeText}>SPEX-SHOP REGISTRATION</Text>
               </View>
               <Text style={styles.title}>REGIS<Text style={styles.titleAccent}>TER.</Text></Text>
-              <Text style={styles.subtitle}>Initialize your professional profile and sync benchmarks.</Text>
+              <Text style={styles.subtitle}>Create your professional account and sync benchmarks.</Text>
             </Animated.View>
 
-            <Animated.View style={[styles.formWrapper, formStyle]}>
+            <Animated.View style={[styles.formWrapper, formStyle, shakeStyle]}>
                <BlurView intensity={20} tint="dark" style={styles.glassCard}>
                   {error && (
                     <View style={styles.errorPill}>
@@ -141,12 +171,12 @@ export default function RegisterScreen() {
 
                   <View style={styles.inputStack}>
                     <View style={styles.inputBox}>
-                      <Text style={styles.label}>FULL IDENTITY</Text>
+                      <Text style={styles.label}>FULL NAME</Text>
                       <View style={styles.inputRow}>
                         <User size={16} color={Colors.primary} />
                         <TextInput
                           style={styles.input}
-                          placeholder="AGENT_NAME"
+                          placeholder="Your full name"
                           placeholderTextColor="rgba(255,255,255,0.3)"
                           value={name}
                           onChangeText={setName}
@@ -156,12 +186,12 @@ export default function RegisterScreen() {
                     </View>
 
                     <View style={styles.inputBox}>
-                      <Text style={styles.label}>TERMINAL_ID</Text>
+                      <Text style={styles.label}>EMAIL ADDRESS</Text>
                       <View style={styles.inputRow}>
                         <Mail size={16} color={Colors.primary} />
                         <TextInput
                           style={styles.input}
-                          placeholder="name@example.com"
+                          placeholder="email@example.com"
                           placeholderTextColor="rgba(255,255,255,0.3)"
                           value={email}
                           onChangeText={setEmail}
@@ -173,7 +203,7 @@ export default function RegisterScreen() {
                     </View>
 
                     <View style={styles.inputBox}>
-                      <Text style={styles.label}>SECURE ACCESS KEY</Text>
+                      <Text style={styles.label}>PASSWORD</Text>
                       <View style={styles.inputRow}>
                         <Lock size={16} color={Colors.primary} />
                         <TextInput
@@ -189,7 +219,7 @@ export default function RegisterScreen() {
                     </View>
 
                     <View style={styles.inputBox}>
-                      <Text style={styles.label}>VERIFY KEY</Text>
+                      <Text style={styles.label}>VERIFY PASSWORD</Text>
                       <View style={styles.inputRow}>
                         <Lock size={16} color={Colors.primary} />
                         <TextInput
@@ -223,10 +253,10 @@ export default function RegisterScreen() {
                </BlurView>
 
                <View style={styles.loginPrompt}>
-                 <Text style={styles.promptText}>ALREADY REGISTERED?</Text>
+                 <Text style={styles.promptText}>ALREADY HAVE AN ACCOUNT?</Text>
                  <Link href="/auth/login" asChild>
                    <TouchableOpacity style={styles.loginBtn}>
-                     <Text style={styles.loginBtnText}>SIGN IN TO TERMINAL</Text>
+                     <Text style={styles.loginBtnText}>LOG IN</Text>
                    </TouchableOpacity>
                  </Link>
                </View>

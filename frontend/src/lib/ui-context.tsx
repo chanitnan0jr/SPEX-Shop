@@ -12,6 +12,8 @@ interface UiPreferencesValue {
   setTheme: (theme: Theme) => void
   isSidebarCollapsed: boolean
   setIsSidebarCollapsed: (collapsed: boolean) => void
+  isMobileMenuOpen: boolean
+  setIsMobileMenuOpen: (open: boolean) => void
 }
 
 const UiPreferencesContext = createContext<UiPreferencesValue | null>(null)
@@ -24,6 +26,7 @@ export function UiPreferencesProvider({ children }: { children: React.ReactNode 
   const [language, setLanguage] = useState<Language>('en')
   const [theme, setTheme] = useState<Theme>('dark')
   const [isSidebarCollapsed, setIsSidebarCollapsed] = useState<boolean>(false)
+  const [isMobileMenuOpen, setIsMobileMenuOpen] = useState<boolean>(false)
 
   useEffect(() => {
     // Synchronize with localStorage on mount
@@ -66,8 +69,10 @@ export function UiPreferencesProvider({ children }: { children: React.ReactNode 
       setTheme,
       isSidebarCollapsed,
       setIsSidebarCollapsed,
+      isMobileMenuOpen,
+      setIsMobileMenuOpen,
     }),
-    [language, theme, isSidebarCollapsed]
+    [language, theme, isSidebarCollapsed, isMobileMenuOpen]
   )
 
   return <UiPreferencesContext.Provider value={value}>{children}</UiPreferencesContext.Provider>

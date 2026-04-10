@@ -3,61 +3,82 @@
 import { useState } from 'react'
 import { useQuery } from '@tanstack/react-query'
 import { motion, AnimatePresence } from 'framer-motion'
-import { Terminal, Smartphone, Plus, Cpu, Battery, Camera } from 'lucide-react'
+import { Terminal, Smartphone, Plus, Cpu, Battery, Camera, BarChart3 } from 'lucide-react'
 import { compareSpecsApi } from '@/lib/api'
 import { pickText } from '@/lib/i18n'
 import { useUiPreferences } from '@/lib/ui-context'
 import { FilterBar } from '@/components/FilterBar'
 import { RadarChart } from '@/components/RadarChart'
+import { ProductSelector } from '@/components/ProductSelector'
 import type { Spec } from '@/lib/api'
 
 export function CompareSection() {
   const { language } = useUiPreferences()
-  const [selectedModels, setSelectedModels] = useState<string[]>([])
+  const [selectedModels, setSelectedModels] = useState<(string | null)[]>([null, null, null, null])
+  const [activeSlotIndex, setActiveSlotIndex] = useState<number | null>(null)
+  const [isSelectorOpen, setIsSelectorOpen] = useState(false)
+
+  const activeModels = selectedModels.filter((m): m is string => m !== null)
 
   const { data: specs, isLoading } = useQuery({
-    queryKey: ['compare', selectedModels],
-    queryFn: () => compareSpecsApi(selectedModels),
-    enabled: selectedModels.length >= 1,
+    queryKey: ['compare', activeModels],
+    queryFn: () => compareSpecsApi(activeModels),
+    enabled: activeModels.length >= 1,
   })
 
-  // Ensure exactly 4 slots
-  const slots = Array(4).fill(null).map((_, i) => specs?.[i] || null)
+  // Map fetched specs to the correct slots based on model name
+  const slots = selectedModels.map((modelName) => {
+    if (!modelName) return null
+    return specs?.find(s => s.model === modelName) || null
+  })
 
-  const removeModel = (model: string) => {
-    setSelectedModels(selectedModels.filter(m => m !== model))
+  const removeModel = (index: number) => {
+    const next = [...selectedModels]
+    next[index] = null
+    setSelectedModels(next)
+  }
+
+  const handleSelectModel = (model: string) => {
+    if (activeSlotIndex !== null) {
+      const next = [...selectedModels]
+      next[activeSlotIndex] = model
+      setSelectedModels(next)
+    }
   }
 
   return (
-    <section className="space-y-16 pb-20">
+    <section className="space-y-12">
       {/* 1. Header & Intro */}
-      <div className="flex flex-col md:flex-row md:items-end justify-between gap-6 px-4">
-        <div className="space-y-2">
-          <div className="flex items-center gap-2 text-[10px] font-black uppercase tracking-[0.3em] text-sky-500">
-             <Terminal className="h-3 w-3" />
-             System Alpha
+      <div className="flex flex-col md:flex-row md:items-end justify-between gap-6 mb-12">
+        <div className="space-y-4">
+          <div className="flex items-center gap-2 text-[11px] font-black uppercase tracking-[0.3em] text-sky-500">
+             <BarChart3 className="h-3.5 w-3.5" />
+             Specification Radar
           </div>
-          <h2 className="font-heading text-4xl font-black tracking-tighter text-slate-950 dark:text-white uppercase leading-none">
-            {pickText(language, { en: 'Compare Smartphones', th: 'เปรียบเทียบสมาร์ทโฟน' })}
+          <h2 className="font-heading text-6xl font-black tracking-tighter text-slate-950 dark:text-white uppercase leading-none">
+            {pickText(language, { en: 'Compare Devices', th: 'เปรียบเทียบอุปกรณ์' })}
           </h2>
-          <p className="text-xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-widest">
-            {pickText(language, { en: 'Technical Benchmarking Dashboard', th: 'แดชบอร์ดเปรียบเทียบเชิงเทคนิค' })}
+          <p className="text-sm font-medium text-slate-500 dark:text-slate-400 max-w-2xl">
+            {pickText(language, { 
+              en: 'Perform detailed side-by-side technical benchmarking and specification analysis for your selected smartphone hardware.', 
+              th: 'ดำเนินการเปรียบเทียบทางเทคนิคอย่างละเอียดและการวิเคราะห์ข้อมูลจำเพาะสำหรับสมาร์ทโฟนที่คุณเลือก' 
+            })}
           </p>
         </div>
       </div>
 
       {/* 2. Device Selection Grid (4 Slots) */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 px-4">
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
         {slots.map((spec, i) => (
           <div key={i} className="relative group min-h-[320px]">
             {spec ? (
               <motion.div 
                 layoutId={`stage-${spec.brand}-${spec.model}`}
-                className="relative flex flex-col items-center justify-between rounded-3xl border border-slate-200/50 bg-white/40 p-6 dark:border-white/5 dark:bg-white/5 backdrop-blur-xl h-full shadow-2xl overflow-hidden"
+                className="relative flex flex-col items-center justify-between rounded-3xl glass-card p-6 border-white/5 h-full shadow-2xl overflow-hidden"
               >
                 {/* Remove Button */}
                 <button 
-                  onClick={() => removeModel(spec.model)}
+                  onClick={() => removeModel(i)}
                   className="absolute top-3 right-3 h-6 w-6 flex items-center justify-center rounded-full bg-slate-950/5 text-slate-400 hover:bg-rose-500 hover:text-white transition-all z-20 cursor-pointer"
                 >
                   <Plus className="h-3 w-3 rotate-45" />
@@ -84,35 +105,38 @@ export function CompareSection() {
                 </div>
               </motion.div>
             ) : (
-              <div 
-                className="flex flex-col items-center justify-center rounded-3xl border-2 border-dashed border-slate-200/50 bg-slate-50/50 dark:border-white/5 dark:bg-white/2 py-12 px-6 h-full text-center transition-all hover:border-sky-500/50 hover:bg-sky-500/2 cursor-pointer"
+              <button 
+                onClick={() => {
+                  setActiveSlotIndex(i)
+                  setIsSelectorOpen(true)
+                }}
+                className="flex flex-col items-center justify-center rounded-3xl border-2 border-dashed border-slate-200/50 bg-white/40 dark:border-white/5 dark:bg-white/2 py-12 px-6 h-full text-center transition-all hover:border-sky-500/50 hover:bg-sky-500/5 cursor-pointer w-full group"
               >
-                <div className="h-12 w-12 rounded-2xl bg-white dark:bg-slate-950/40 border border-slate-200/50 dark:border-white/10 flex items-center justify-center mb-4 text-slate-400">
+                <div className="h-12 w-12 rounded-2xl bg-slate-950/40 border border-white/10 flex items-center justify-center mb-4 text-slate-400 group-hover:text-sky-500 group-hover:border-sky-500/50 transition-all">
                   <Plus className="h-5 w-5" />
                 </div>
-                <p className="text-[10px] font-black text-slate-400 dark:text-slate-500 uppercase tracking-widest">
+                <p className="text-[10px] font-black text-slate-400 dark:text-slate-500 uppercase tracking-widest group-hover:text-sky-500 transition-colors">
                   {pickText(language, { en: 'Add Device', th: 'เพิ่มอุปกรณ์' })}
                 </p>
-              </div>
+              </button>
             )}
           </div>
         ))}
       </div>
 
-      {/* 3. Search Command Bar */}
-      <div className="max-w-xl mx-auto px-4">
-        <div className="relative group">
-           <FilterBar selectedModels={selectedModels} setSelectedModels={setSelectedModels} />
-        </div>
-      </div>
-
       {/* 4. Comparison Table (Technical Specs) */}
+      <ProductSelector 
+        isOpen={isSelectorOpen}
+        onClose={() => setIsSelectorOpen(false)}
+        onSelect={handleSelectModel}
+        title={activeSlotIndex !== null ? pickText(language, { en: `Select Device for Slot ${activeSlotIndex + 1}`, th: `เลือกอุปกรณ์สำหรับช่องที่ ${activeSlotIndex + 1}` }) : undefined}
+      />
       <AnimatePresence>
         {specs && specs.length > 0 && (
           <motion.div 
             initial={{ opacity: 0, y: 40 }}
             animate={{ opacity: 1, y: 0 }}
-            className="space-y-12 px-4"
+            className="space-y-12"
           >
             {/* The Table Shell */}
             <div className="rounded-[2.5rem] border border-slate-200/50 bg-white/40 dark:border-white/5 dark:bg-white/5 backdrop-blur-3xl shadow-3xl max-h-[80vh] overflow-auto scrollbar-hide">

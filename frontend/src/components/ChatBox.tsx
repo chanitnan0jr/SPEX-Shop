@@ -298,7 +298,7 @@ export function ChatBox() {
             <div>
               <h2 className="font-heading text-lg font-black tracking-tight leading-none text-slate-950 dark:text-white">
                 {pickText(language, {
-                  en: 'SpecBot AI Assistant',
+                  en: 'SPEX AI Assistant',
                   th: 'ผู้ช่วย Specbot AI',
                 })}
               </h2>

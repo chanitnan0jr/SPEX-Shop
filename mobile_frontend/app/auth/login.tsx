@@ -62,11 +62,43 @@ export default function LoginScreen() {
     transform: [{ translateY: formTranslateY.value }],
   }))
 
+  const shakeY = useSharedValue(0)
+  const shakeX = useSharedValue(0)
+
+  const shakeStyle = useAnimatedStyle(() => ({
+    transform: [
+      { translateX: shakeX.value },
+      { translateY: formTranslateY.value }
+    ],
+  }))
+
+  const triggerShake = () => {
+    shakeX.value = withTiming(-10, { duration: 50 }, () => {
+      shakeX.value = withTiming(10, { duration: 50 }, () => {
+        shakeX.value = withTiming(-10, { duration: 50 }, () => {
+          shakeX.value = withTiming(10, { duration: 50 }, () => {
+             shakeX.value = withTiming(0, { duration: 50 });
+          });
+        });
+      });
+    });
+  }
+
   const handleLogin = async () => {
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
+    
     if (!email.trim() || !password) {
       setError('Credentials required.')
+      triggerShake()
       return
     }
+
+    if (!emailRegex.test(email.trim())) {
+      setError('Invalid terminal address format.')
+      triggerShake()
+      return
+    }
+
     setError(null)
     setIsLoading(true)
     try {
@@ -111,13 +143,13 @@ export default function LoginScreen() {
           <View style={styles.content}>
             <Animated.View style={[styles.header, headerStyle]}>
               <View style={styles.badge}>
-                <Text style={styles.badgeText}>SECURE TERMINAL V4.2</Text>
+                <Text style={styles.badgeText}>SPEX-SHOP SECURE</Text>
               </View>
-              <Text style={styles.title}>SIGN <Text style={styles.titleAccent}>IN.</Text></Text>
-              <Text style={styles.subtitle}>Unlock professional hardware analytics and marketplace synchronization.</Text>
+              <Text style={styles.title}>LOG <Text style={styles.titleAccent}>IN.</Text></Text>
+              <Text style={styles.subtitle}>Access your professional hardware analytics and marketplace.</Text>
             </Animated.View>
 
-            <Animated.View style={[styles.formWrapper, formStyle]}>
+            <Animated.View style={[styles.formWrapper, formStyle, shakeStyle]}>
                <BlurView intensity={20} tint="dark" style={styles.glassCard}>
                   {error && (
                     <View style={styles.errorPill}>
@@ -130,7 +162,7 @@ export default function LoginScreen() {
                       <Mail size={16} color={Colors.primary} />
                       <TextInput
                         style={styles.input}
-                        placeholder="TERMINAL_ID (EMAIL)"
+                        placeholder="EMAIL ADDRESS"
                         placeholderTextColor="rgba(255,255,255,0.3)"
                         value={email}
                         onChangeText={setEmail}
@@ -168,7 +200,7 @@ export default function LoginScreen() {
                       <ActivityIndicator color="#fff" />
                     ) : (
                       <>
-                        <Text style={styles.btnText}>SIGN IN</Text>
+                        <Text style={styles.btnText}>LOG IN</Text>
                         <ArrowRight size={18} color="#fff" />
                       </>
                     )}
@@ -176,10 +208,10 @@ export default function LoginScreen() {
                </BlurView>
 
                <View style={styles.registerPrompt}>
-                 <Text style={styles.promptText}>NO TERMINAL ACCESS?</Text>
+                 <Text style={styles.promptText}>DON'T HAVE AN ACCOUNT?</Text>
                  <Link href="/auth/register" asChild>
                    <TouchableOpacity style={styles.registerBtn}>
-                     <Text style={styles.registerBtnText}>CREATE ACCOUNT</Text>
+                     <Text style={styles.registerBtnText}>REGISTER</Text>
                    </TouchableOpacity>
                  </Link>
                </View>

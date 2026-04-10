@@ -9,6 +9,7 @@ export function UiControls() {
 
   return (
     <div className="flex flex-wrap items-center gap-2">
+      {/* Language Toggle */}
       <div className="inline-flex items-center gap-1 rounded-full border border-slate-200/50 bg-white/80 p-1 text-xs shadow-sm shadow-slate-100 dark:border-white/10 dark:bg-white/6 dark:shadow-none">
         <span className="flex h-8 w-8 items-center justify-center rounded-full text-slate-500 dark:text-slate-300">
           <Languages className="h-4 w-4" />
@@ -18,21 +19,17 @@ export function UiControls() {
             key={option}
             type="button"
             onClick={() => setLanguage(option)}
-            className="relative cursor-pointer rounded-full px-3 py-1.5 font-bold uppercase transition-colors"
+            className="relative h-8 min-w-[36px] cursor-pointer rounded-full px-3 font-bold uppercase transition-colors"
           >
-            <AnimatePresence mode="wait">
-              {language === option && (
-                <motion.div
-                  layoutId="language-pill"
-                  className="absolute inset-0 bg-slate-950 dark:bg-white rounded-full"
-                  initial={{ opacity: 0 }}
-                  animate={{ opacity: 1 }}
-                  exit={{ opacity: 0 }}
-                  transition={{ type: 'spring', bounce: 0.15, duration: 0.5 }}
-                />
-              )}
-            </AnimatePresence>
-            <span className={`relative z-10 ${
+            {language === option && (
+              <motion.div
+                layoutId="language-pill"
+                className="absolute inset-0 bg-slate-950 dark:bg-white transition-colors duration-300"
+                style={{ borderRadius: 999 }}
+                transition={{ type: 'spring', bounce: 0.1, duration: 0.4 }}
+              />
+            )}
+            <span className={`relative z-10 transition-colors duration-300 ${
               language === option
                 ? 'text-white dark:text-slate-950'
                 : 'text-slate-500 hover:text-slate-950 dark:text-slate-300 dark:hover:text-white'
@@ -43,49 +40,33 @@ export function UiControls() {
         ))}
       </div>
 
+      {/* Theme Toggle */}
       <div className="inline-flex items-center gap-1 rounded-full border border-slate-200/50 bg-white/80 p-1 text-xs shadow-sm shadow-slate-100 dark:border-white/10 dark:bg-white/6 dark:shadow-none">
-        <button
-          type="button"
-          onClick={() => setTheme('dark')}
-          className="relative inline-flex cursor-pointer items-center gap-1.5 rounded-full px-3 py-1.5 font-semibold transition-colors"
-        >
-          {theme === 'dark' && (
-            <motion.div
-              layoutId="theme-pill"
-              className="absolute inset-0 bg-slate-950 dark:bg-white rounded-full"
-              transition={{ type: 'spring', bounce: 0.15, duration: 0.5 }}
-            />
-          )}
-          <div className={`relative z-10 flex items-center gap-1.5 ${
-            theme === 'dark'
-              ? 'text-white dark:text-slate-950'
-              : 'text-slate-600 hover:text-slate-950 dark:text-slate-300 dark:hover:text-white'
-          }`}>
-            <MoonStar className="h-3.5 w-3.5" />
-            Dark
-          </div>
-        </button>
-        <button
-          type="button"
-          onClick={() => setTheme('light')}
-          className="relative inline-flex cursor-pointer items-center gap-1.5 rounded-full px-3 py-1.5 font-semibold transition-colors"
-        >
-          {theme === 'light' && (
-            <motion.div
-              layoutId="theme-pill"
-              className="absolute inset-0 bg-slate-950 dark:bg-white rounded-full"
-              transition={{ type: 'spring', bounce: 0.15, duration: 0.5 }}
-            />
-          )}
-          <div className={`relative z-10 flex items-center gap-1.5 ${
-            theme === 'light'
-              ? 'text-white dark:text-slate-950'
-              : 'text-slate-600 hover:text-slate-950 dark:text-slate-300 dark:hover:text-white'
-          }`}>
-            <SunMedium className="h-3.5 w-3.5" />
-            Light
-          </div>
-        </button>
+        {(['dark', 'light'] as const).map((t) => (
+          <button
+            key={t}
+            type="button"
+            onClick={() => setTheme(t)}
+            className="relative h-8 min-w-[70px] inline-flex cursor-pointer items-center justify-center gap-1.5 rounded-full px-3 font-semibold transition-colors"
+          >
+            {theme === t && (
+              <motion.div
+                layoutId="theme-pill"
+                className="absolute inset-0 bg-slate-950 dark:bg-white transition-colors duration-300"
+                style={{ borderRadius: 999 }}
+                transition={{ type: 'spring', bounce: 0.1, duration: 0.4 }}
+              />
+            )}
+            <div className={`relative z-10 flex items-center gap-1.5 transition-colors duration-300 ${
+              theme === t
+                ? 'text-white dark:text-slate-950'
+                : 'text-slate-600 hover:text-slate-100 dark:text-slate-300 dark:hover:text-white'
+            }`}>
+              {t === 'dark' ? <MoonStar className="h-3.5 w-3.5" /> : <SunMedium className="h-3.5 w-3.5" />}
+              <span className="capitalize">{t}</span>
+            </div>
+          </button>
+        ))}
       </div>
     </div>
   )

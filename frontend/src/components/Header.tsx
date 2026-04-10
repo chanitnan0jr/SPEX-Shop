@@ -1,7 +1,7 @@
 'use client'
 
 import Link from 'next/link'
-import { Bot, Sparkles } from 'lucide-react'
+import { Bot, Sparkles, Smartphone, Menu } from 'lucide-react'
 import { motion, useScroll, useSpring } from 'framer-motion'
 import { UiControls } from './UiControls'
 import { pickText } from '@/lib/i18n'
@@ -16,28 +16,34 @@ export function Header() {
     restDelta: 0.001
   })
 
-  const { isSidebarCollapsed } = useUiPreferences()
+  const { isSidebarCollapsed, setIsMobileMenuOpen } = useUiPreferences()
 
   return (
-    <header className={`fixed top-0 left-0 right-0 z-50 transition-[padding] duration-500 ease-in-out border-b border-slate-300/35 bg-white/60 backdrop-blur-3xl dark:border-white/5 dark:bg-slate-950/80 ${isSidebarCollapsed ? 'xl:pl-20' : 'xl:pl-64'}`}>
+    <header className={`fixed top-0 right-0 z-50 h-[72px] transition-all duration-300 ease-in-out border-b border-slate-300/35 bg-white/60 backdrop-blur-3xl dark:border-white/5 dark:bg-slate-950/80 ${isSidebarCollapsed ? 'xl:left-20' : 'xl:left-64'} left-0`}>
       <motion.div 
         initial={{ y: -20, opacity: 0 }}
         animate={{ y: 0, opacity: 1 }}
-        className="relative w-full h-[72px] px-6 flex items-center md:px-10"
+        className="relative w-full h-full px-6 flex items-center md:px-10"
       >
-        <div className="grid grid-cols-3 items-center gap-4 relative z-10 w-full">
-          {/* Left: Logo Command */}
+        <div className="grid grid-cols-[1fr_auto_1fr] items-center gap-4 relative z-10 w-full h-full">
+          {/* Left: Logo & Menu Command */}
           <div className="flex items-center gap-4 w-fit">
+            <button
+              onClick={() => setIsMobileMenuOpen(true)}
+              className="xl:hidden flex h-10 w-10 items-center justify-center rounded-2xl border border-slate-200 bg-white text-slate-500 shadow-sm transition-all hover:bg-slate-50 hover:text-slate-950 dark:border-white/10 dark:bg-white/5 dark:text-slate-400 dark:hover:bg-white/10 dark:hover:text-white cursor-pointer"
+            >
+              <Menu className="h-5 w-5" />
+            </button>
             <Link href="/" className="group flex items-center gap-3">
               <motion.div 
                 whileHover={{ scale: 1.1, rotate: 5 }}
                 whileTap={{ scale: 0.9 }}
                 className="flex h-10 w-10 items-center justify-center rounded-2xl bg-slate-950 text-white shadow-xl transition-all group-hover:shadow-sky-500/20 dark:bg-white dark:text-slate-950"
               >
-                <Sparkles className="h-5 w-5 animate-pulse" />
+                <Smartphone className="h-5 w-5" />
               </motion.div>
               <div className="hidden sm:block">
-                <p className="font-heading text-xs font-black uppercase tracking-[0.25em] text-slate-950 dark:text-white leading-none">SpecBot</p>
+                <p className="font-heading text-xs font-black uppercase tracking-[0.25em] text-slate-950 dark:text-white leading-none">SPEX-SHOP</p>
                 <div className="flex items-center gap-2 mt-1">
                   <span className="flex h-1.5 w-1.5 rounded-full bg-emerald-500" />
                   <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">

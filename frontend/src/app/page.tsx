@@ -4,8 +4,6 @@ import { useEffect, useState } from 'react'
 import Link from 'next/link'
 import { Sparkles, ArrowRight, Zap, Target, BarChart3, Database, ShieldCheck, ArrowLeftRight, BrainCircuit, CheckCircle, Smartphone, Terminal, Globe, Mail, Phone, Loader2 } from 'lucide-react'
 import { motion, AnimatePresence } from 'framer-motion'
-import { Header } from '@/components/Header'
-import { Footer } from '@/components/Footer'
 import { ChatPopup } from '@/components/ChatPopup'
 import { pickText } from '@/lib/i18n'
 import { useUiPreferences } from '@/lib/ui-context'
@@ -81,9 +79,7 @@ export default function Home() {
 
   return (
     <div className="flex min-h-screen flex-col overflow-hidden">
-      <Header />
-
-      <main className="flex-1 w-full max-w-[1440px] mx-auto px-6 pt-32 pb-12 md:pt-40 md:pb-32 space-y-24">
+      <main className="flex-1 w-full max-w-[1440px] mx-auto px-6 pt-16 pb-12 md:pt-24 md:pb-32 space-y-24">
         {/* 1. Luminary Hero Block */}
         <motion.div 
           initial={{ opacity: 0, scale: 0.98 }}
@@ -183,7 +179,7 @@ export default function Home() {
               {pickText(language, { en: 'Precision Engineering', th: 'วิศวกรรมข้อมูลแม่นยำ' })}
             </h2>
             <p className="text-sm font-bold text-slate-400 dark:text-slate-500 uppercase tracking-[0.3em]">
-              {pickText(language, { en: 'The three pillars of Spec Core architecture', th: '3 เสาหลักของสถาปัตยกรรมข้อมูล SpecBot' })}
+              {pickText(language, { en: 'The three pillars of Spec Core architecture', th: '3 เสาหลักของสถาปัตยกรรมข้อมูล SPEX-Shop' })}
             </p>
           </div>
 
@@ -341,9 +337,6 @@ export default function Home() {
           </div>
         </section>
       </main>
-
-      <Footer />
-      <ChatPopup />
     </div>
   )
 }
