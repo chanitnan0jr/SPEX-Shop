@@ -1,6 +1,6 @@
-# SpecBot — Thai Smartphone AI Assistant
+# SPEX-Shop — The Ultimate Tech Hub
 
-SpecBot is a professional-grade technical workstation for discovering, searching, and comparing smartphones. Powered by Retrieval-Augmented Generation (RAG) and optimized for the Thai language, it combines real-time data scraping with state-of-the-art neural search and persistent chat history.
+SPEX-Shop is a premium smartphone research and e-commerce ecosystem. It combines a professional-grade technical workstation for discovering and comparing smartphones with a high-performance shopping engine. Powered by Retrieval-Augmented Generation (RAG) and optimized for the Thai language, it provides AI-driven insights alongside a seamless, secure cart and checkout experience.
 
 ---
 
@@ -8,11 +8,12 @@ SpecBot is a professional-grade technical workstation for discovering, searching
 
 - **Neural Semantic Search** — Cross-Encoder reranker (`ms-marco-MiniLM-L-6-v2`) understands query intent, not just keywords.
 - **Hybrid Scoring** — MongoDB Atlas Vector Search + exact keyword overlap for high-precision retrieval.
+- **Smart E-Commerce Engine** — Secure JWT-based authentication, real-time cart synchronization, and persistent order tracking.
 - **Multi-Query Expansion** — Typhoon LLM rewrites each query into 3 variations before searching, catching specs others miss.
-- **Persistent Chat History** — Conversations are saved to MongoDB per session. Closing the tab mid-request won't lose the answer; it syncs when you return.
-- **Side-by-Side Compare** — Dedicated `/compare` workspace with 20+ spec rows across up to 4 models.
+- **Persistent Chat History** — Conversations are saved to MongoDB per session. AI assistant provides context-aware shopping advice.
+- **Side-by-Side Compare** — Dedicated `/compare` workspace with 20+ spec rows across up to 4 models with fixed-slot UX.
 - **Feedback Loop** — Thumbs up/down on every answer feeds into ongoing quality monitoring.
-- **Auto Re-scrape** — GitHub Actions scrapes Specphone.com monthly to keep the database fresh.
+- **Auto Re-scrape** — GitHub Actions scrapes technical data monthly to keep the database fresh.
 
 ---
 
@@ -24,11 +25,13 @@ SpecBot is a professional-grade technical workstation for discovering, searching
 | Embeddings | `@xenova/transformers` — `paraphrase-multilingual-MiniLM-L12-v2` |
 | Reranker | Neural Cross-Encoder `ms-marco-MiniLM-L-6-v2` |
 | Database | MongoDB Atlas + Vector Search (`vector_index`, 384-dim cosine) |
-| Backend | Node.js 20 · Express 4 · TypeScript strict · Bun |
-| Frontend | Next.js 14 App Router · React 18 · Tailwind CSS 4 · Framer Motion |
+| Backend | Node.js 22 · Express 4 · TypeScript strict · Bun |
+| Web Frontend | Next.js 14 App Router · React 18 · Tailwind CSS 4 · Framer Motion |
+| Mobile App | React Native (Expo) · Expo Router · Lucide Icons |
 | State | TanStack Query v5 (React Query) |
+| Analytics | AI-Powered Hardware Fingerprinting (Radar Charts) |
 | Hosting | Azure App Service (backend) · Vercel (frontend) |
-| CI/CD | GitHub Actions — deploy + monthly scrape |
+| CI/CD | GitHub Actions — Deploy + Monthly Scrape |
 
 ---
 
@@ -55,11 +58,11 @@ User query (Thai)
 |--------|------|-------------|
 | GET | `/api/health` | DB status + uptime |
 | POST | `/api/search` | RAG search — `{ query, sessionId? }` |
-| GET | `/api/specs/:brand` | All specs for a brand |
+| GET | `/api/products` | Paginated product catalog |
 | GET | `/api/compare` | Side-by-side compare for 2–4 models |
-| GET | `/api/chat/:sessionId` | Retrieve last 50 messages for a session |
-| DELETE | `/api/chat/:sessionId` | Clear session history |
-| GET | `/api/track/count` | `{ totalUsers, todayUsers }` |
+| POST | `/api/auth/login` | Secure JWT Authentication |
+| GET | `/api/cart` | User cart synchronization |
+| POST | `/api/orders/create` | Order creation + Invoice generation |
 | GET | `/api/images/official` | Model image lookup |
 | POST | `/api/feedback` | Submit helpful/unhelpful rating |
 
