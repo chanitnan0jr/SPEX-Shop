@@ -595,7 +595,7 @@ const styles = StyleSheet.create({
   radarCard: {
     marginHorizontal: Spacing.xl,
     backgroundColor: 'rgba(10, 10, 15, 0.8)',
-    borderRadius: Radius.xxl,
+    borderRadius: Radius['2xl'],
     borderWidth: 1,
     borderColor: 'rgba(255,255,255,0.08)',
     padding: 20,
@@ -707,8 +707,8 @@ const styles = StyleSheet.create({
   },
   modalContent: {
     backgroundColor: '#121218',
-    borderTopLeftRadius: Radius.xxxl,
-    borderTopRightRadius: Radius.xxxl,
+    borderTopLeftRadius: Radius['3xl'],
+    borderTopRightRadius: Radius['3xl'],
     height: '85%',
     borderWidth: 1,
     borderColor: 'rgba(255,255,255,0.1)',
