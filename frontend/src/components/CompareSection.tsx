@@ -59,14 +59,16 @@ export function CompareSection() {
   } as const
 
   const itemVariants = {
-    hidden: { opacity: 0, y: 20 },
+    hidden: { opacity: 0, y: 50, scale: 0.5 },
     visible: { 
       opacity: 1, 
       y: 0,
+      scale: 1,
       transition: {
         type: "spring",
-        stiffness: 100,
-        damping: 15
+        stiffness: 120,
+        damping: 14,
+        mass: 0.8
       }
     }
   } as const
@@ -169,8 +171,9 @@ export function CompareSection() {
       <AnimatePresence>
         {specs && specs.length > 0 && (
           <motion.div 
-            initial={{ opacity: 0, y: 40 }}
+            initial={{ opacity: 0, y: 100 }}
             animate={{ opacity: 1, y: 0 }}
+            transition={{ type: "spring", stiffness: 80, damping: 15 }}
             className="space-y-12"
           >
             {/* The Table Shell */}

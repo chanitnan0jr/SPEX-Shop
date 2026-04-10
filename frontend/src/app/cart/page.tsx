@@ -42,14 +42,29 @@ export default function CartPage() {
   } as const
 
   const itemVariants = {
-    hidden: { opacity: 0, y: 20 },
+    hidden: { opacity: 0, x: -50 },
     visible: { 
       opacity: 1, 
-      y: 0,
+      x: 0,
       transition: {
         type: "spring",
-        stiffness: 100,
-        damping: 15
+        stiffness: 120,
+        damping: 14,
+        mass: 0.8
+      }
+    }
+  } as const
+
+  const summaryVariants = {
+    hidden: { opacity: 0, x: 50 },
+    visible: { 
+      opacity: 1, 
+      x: 0,
+      transition: {
+        type: "spring",
+        stiffness: 120,
+        damping: 14,
+        mass: 0.8
       }
     }
   } as const
@@ -160,7 +175,7 @@ export default function CartPage() {
           </motion.div>
 
           {/* Cart Summary Header */}
-          <motion.div variants={itemVariants} className="lg:col-span-1">
+          <motion.div variants={summaryVariants} className="lg:col-span-1">
             <div className="rounded-3xl border border-slate-200/50 bg-white/50 dark:border-white/5 dark:bg-white/5 backdrop-blur-xl shadow-xl p-8 space-y-8 sticky top-32">
               <h2 className="text-2xl font-black uppercase tracking-tighter">Budget Summary</h2>
               

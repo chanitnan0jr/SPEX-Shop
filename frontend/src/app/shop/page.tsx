@@ -6,6 +6,33 @@ import { Search, Filter, ShoppingCart, BarChart2, Zap, Cpu, MousePointer2 } from
 import { getProductsApi, type Spec } from '@/lib/api'
 import { useCart } from '@/lib/cart-context'
 
+const containerVariants = {
+  hidden: { opacity: 0 },
+  visible: { 
+    opacity: 1,
+    transition: {
+      staggerChildren: 0.1,
+      delayChildren: 0.1
+    }
+  }
+} as const
+
+const itemVariants = {
+  hidden: { opacity: 0, y: 50, scale: 0.8, rotate: -2 },
+  visible: { 
+    opacity: 1, 
+    y: 0,
+    scale: 1,
+    rotate: 0,
+    transition: {
+      type: "spring",
+      stiffness: 120,
+      damping: 14,
+      mass: 0.8
+    }
+  }
+} as const
+
 export default function ShopPage() {
   const [products, setProducts] = useState<Spec[]>([])
   const [loading, setLoading] = useState(true)
@@ -33,30 +60,6 @@ export default function ShopPage() {
   )
 
   const brands = ['All', 'Apple', 'Samsung', 'Xiaomi', 'Vivo', 'Oppo', 'Google']
-
-  const containerVariants = {
-    hidden: { opacity: 0 },
-    visible: { 
-      opacity: 1,
-      transition: {
-        staggerChildren: 0.1,
-        delayChildren: 0.1
-      }
-    }
-  } as const
-
-  const itemVariants = {
-    hidden: { opacity: 0, y: 20 },
-    visible: { 
-      opacity: 1, 
-      y: 0,
-      transition: {
-        type: "spring",
-        stiffness: 100,
-        damping: 15
-      }
-    }
-  } as const
 
   return (
     <motion.div 
@@ -145,8 +148,7 @@ export default function ShopPage() {
 function ProductCard({ product, onAdd }: { product: Spec, onAdd: () => void }) {
   return (
     <motion.div
-      initial={{ opacity: 0, y: 20 }}
-      animate={{ opacity: 1, y: 0 }}
+      variants={itemVariants}
       exit={{ opacity: 0, scale: 0.95 }}
       whileHover={{ y: -8 }}
       className="group rounded-3xl border border-slate-200/50 bg-white/50 dark:border-white/5 dark:bg-white/5 backdrop-blur-xl shadow-xl p-6 hover:border-sky-500/30 transition-all duration-500 overflow-hidden relative"
