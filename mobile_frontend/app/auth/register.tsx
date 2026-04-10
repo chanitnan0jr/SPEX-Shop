@@ -27,6 +27,8 @@ import { Colors, Fonts, Spacing, Radius } from '../../lib/constants'
 import { authRegister } from '../../lib/api'
 import { useAuth } from '../../context/auth'
 import { useCart } from '../../hooks/useCart'
+import { useUiPreferences } from '../../context/ui-context'
+import { getFontFamily } from '../../lib/fonts'
 
 const { width: SCREEN_WIDTH } = Dimensions.get('window')
 
@@ -34,6 +36,8 @@ export default function RegisterScreen() {
   const router = useRouter()
   const { signIn } = useAuth()
   const { mergeLocalCart } = useCart()
+  const { language, theme } = useUiPreferences()
+  const currentColors = theme === 'dark' ? Colors.dark : Colors.light
 
   const [name, setName] = useState('')
   const [email, setEmail] = useState('')
@@ -124,23 +128,23 @@ export default function RegisterScreen() {
   }
 
   return (
-    <View style={styles.container}>
-      <StatusBar barStyle="light-content" />
+    <View style={[styles.container, { backgroundColor: theme === 'dark' ? '#05070a' : '#f8fafc' }]}>
+      <StatusBar barStyle={theme === 'dark' ? 'light-content' : 'dark-content'} />
       
       {/* Background Layer: Deep Cyberpunk Architecture */}
       <View style={styles.bgWrapper}>
-        <View style={styles.radialGlow1} />
-        <View style={styles.radialGlow2} />
+        <View style={[styles.radialGlow1, { backgroundColor: theme === 'dark' ? 'rgba(20, 104, 255, 0.12)' : 'rgba(20, 104, 255, 0.05)' }]} />
+        <View style={[styles.radialGlow2, { backgroundColor: theme === 'dark' ? 'rgba(56, 189, 248, 0.05)' : 'rgba(56, 189, 248, 0.03)' }]} />
       </View>
 
       <SafeAreaView style={styles.safe}>
         {/* Modern Navbar */}
         <View style={styles.navBar}>
-          <TouchableOpacity onPress={() => router.back()} style={styles.navBtn}>
-            <ChevronLeft size={20} color="#fff" />
+          <TouchableOpacity onPress={() => router.back()} style={StyleSheet.flatten([styles.navBtn, { backgroundColor: theme === 'dark' ? 'rgba(255,255,255,0.05)' : 'rgba(0,0,0,0.03)', borderColor: currentColors.border }])}>
+            <ChevronLeft size={20} color={currentColors.text} />
           </TouchableOpacity>
-          <TouchableOpacity onPress={() => router.replace('/(tabs)')} style={styles.navBtn}>
-            <Home size={18} color="#fff" />
+          <TouchableOpacity onPress={() => router.replace('/(tabs)')} style={StyleSheet.flatten([styles.navBtn, { backgroundColor: theme === 'dark' ? 'rgba(255,255,255,0.05)' : 'rgba(0,0,0,0.03)', borderColor: currentColors.border }])}>
+            <Home size={18} color={currentColors.text} />
           </TouchableOpacity>
         </View>
 
@@ -154,15 +158,15 @@ export default function RegisterScreen() {
             bounces={false}
           >
             <Animated.View style={[styles.header, headerStyle]}>
-              <View style={styles.badge}>
-                <Text style={styles.badgeText}>SPEX-SHOP REGISTRATION</Text>
+              <View style={[styles.badge, { backgroundColor: theme === 'dark' ? 'rgba(56, 189, 248, 0.1)' : 'rgba(56, 189, 248, 0.05)', borderColor: 'rgba(56, 189, 248, 0.2)' }]}>
+                <Text style={[styles.badgeText, { color: Colors.primaryLight, fontFamily: getFontFamily(language, 'black') }]}>SPEX-SHOP REGISTRATION</Text>
               </View>
-              <Text style={styles.title}>REGIS<Text style={styles.titleAccent}>TER.</Text></Text>
-              <Text style={styles.subtitle}>Create your professional account and sync benchmarks.</Text>
+              <Text style={[styles.title, { color: currentColors.text, fontFamily: getFontFamily(language, 'black') }]}>REGIS<Text style={styles.titleAccent}>TER.</Text></Text>
+              <Text style={[styles.subtitle, { color: currentColors.textMuted, fontFamily: getFontFamily(language) }]}>Create your professional account and sync benchmarks.</Text>
             </Animated.View>
 
             <Animated.View style={[styles.formWrapper, formStyle, shakeStyle]}>
-               <BlurView intensity={20} tint="dark" style={styles.glassCard}>
+               <BlurView intensity={theme === 'dark' ? 20 : 40} tint={theme === 'dark' ? 'dark' : 'light'} style={StyleSheet.flatten([styles.glassCard, { backgroundColor: theme === 'dark' ? 'rgba(255,255,255,0.02)' : 'rgba(255,255,255,0.6)', borderColor: currentColors.border }])}>
                   {error && (
                     <View style={styles.errorPill}>
                       <Text style={styles.errorText}>{error.toUpperCase()}</Text>
@@ -171,13 +175,13 @@ export default function RegisterScreen() {
 
                   <View style={styles.inputStack}>
                     <View style={styles.inputBox}>
-                      <Text style={styles.label}>FULL NAME</Text>
-                      <View style={styles.inputRow}>
+                      <Text style={[styles.label, { color: currentColors.textMuted, fontFamily: getFontFamily(language, 'black') }]}>FULL NAME</Text>
+                      <View style={[styles.inputRow, { backgroundColor: theme === 'dark' ? 'rgba(255,255,255,0.04)' : 'rgba(0,0,0,0.03)', borderColor: currentColors.border }]}>
                         <User size={16} color={Colors.primary} />
                         <TextInput
-                          style={styles.input}
+                          style={[styles.input, { color: currentColors.text, fontFamily: getFontFamily(language, 'semibold') }]}
                           placeholder="Your full name"
-                          placeholderTextColor="rgba(255,255,255,0.3)"
+                          placeholderTextColor={theme === 'dark' ? 'rgba(255,255,255,0.3)' : 'rgba(0,0,0,0.3)'}
                           value={name}
                           onChangeText={setName}
                           editable={!isLoading}
@@ -186,13 +190,13 @@ export default function RegisterScreen() {
                     </View>
 
                     <View style={styles.inputBox}>
-                      <Text style={styles.label}>EMAIL ADDRESS</Text>
-                      <View style={styles.inputRow}>
-                        <Mail size={16} color={Colors.primary} />
+                      <Text style={[styles.label, { color: currentColors.textMuted, fontFamily: getFontFamily(language, 'black') }]}>EMAIL ADDRESS</Text>
+                      <View style={[styles.inputRow, { backgroundColor: theme === 'dark' ? 'rgba(255,255,255,0.04)' : 'rgba(0,0,0,0.03)', borderColor: currentColors.border }]}>
+                        <Home size={16} color={Colors.primary} />
                         <TextInput
-                          style={styles.input}
+                          style={[styles.input, { color: currentColors.text, fontFamily: getFontFamily(language, 'semibold') }]}
                           placeholder="email@example.com"
-                          placeholderTextColor="rgba(255,255,255,0.3)"
+                          placeholderTextColor={theme === 'dark' ? 'rgba(255,255,255,0.3)' : 'rgba(0,0,0,0.3)'}
                           value={email}
                           onChangeText={setEmail}
                           autoCapitalize="none"
@@ -203,13 +207,13 @@ export default function RegisterScreen() {
                     </View>
 
                     <View style={styles.inputBox}>
-                      <Text style={styles.label}>PASSWORD</Text>
-                      <View style={styles.inputRow}>
+                      <Text style={[styles.label, { color: currentColors.textMuted, fontFamily: getFontFamily(language, 'black') }]}>PASSWORD</Text>
+                      <View style={[styles.inputRow, { backgroundColor: theme === 'dark' ? 'rgba(255,255,255,0.04)' : 'rgba(0,0,0,0.03)', borderColor: currentColors.border }]}>
                         <Lock size={16} color={Colors.primary} />
                         <TextInput
-                          style={styles.input}
+                          style={[styles.input, { color: currentColors.text, fontFamily: getFontFamily(language, 'semibold') }]}
                           placeholder="••••••••"
-                          placeholderTextColor="rgba(255,255,255,0.3)"
+                          placeholderTextColor={theme === 'dark' ? 'rgba(255,255,255,0.3)' : 'rgba(0,0,0,0.3)'}
                           value={password}
                           onChangeText={setPassword}
                           secureTextEntry
@@ -219,13 +223,13 @@ export default function RegisterScreen() {
                     </View>
 
                     <View style={styles.inputBox}>
-                      <Text style={styles.label}>VERIFY PASSWORD</Text>
-                      <View style={styles.inputRow}>
+                      <Text style={[styles.label, { color: currentColors.textMuted, fontFamily: getFontFamily(language, 'black') }]}>VERIFY PASSWORD</Text>
+                      <View style={[styles.inputRow, { backgroundColor: theme === 'dark' ? 'rgba(255,255,255,0.04)' : 'rgba(0,0,0,0.03)', borderColor: currentColors.border }]}>
                         <Lock size={16} color={Colors.primary} />
                         <TextInput
-                          style={styles.input}
+                          style={[styles.input, { color: currentColors.text, fontFamily: getFontFamily(language, 'semibold') }]}
                           placeholder="••••••••"
-                          placeholderTextColor="rgba(255,255,255,0.3)"
+                          placeholderTextColor={theme === 'dark' ? 'rgba(255,255,255,0.3)' : 'rgba(0,0,0,0.3)'}
                           value={confirmPassword}
                           onChangeText={setConfirmPassword}
                           secureTextEntry
@@ -245,7 +249,7 @@ export default function RegisterScreen() {
                       <ActivityIndicator color="#fff" />
                     ) : (
                       <>
-                        <Text style={styles.btnText}>REGISTER</Text>
+                        <Text style={[styles.btnText, { fontFamily: getFontFamily(language, 'black') }]}>REGISTER</Text>
                         <CheckCircle size={18} color="#fff" />
                       </>
                     )}
@@ -253,10 +257,10 @@ export default function RegisterScreen() {
                </BlurView>
 
                <View style={styles.loginPrompt}>
-                 <Text style={styles.promptText}>ALREADY HAVE AN ACCOUNT?</Text>
+                 <Text style={[styles.promptText, { color: currentColors.textMuted, fontFamily: getFontFamily(language, 'bold') }]}>ALREADY HAVE AN ACCOUNT?</Text>
                  <Link href="/auth/login" asChild>
-                   <TouchableOpacity style={styles.loginBtn}>
-                     <Text style={styles.loginBtnText}>LOG IN</Text>
+                   <TouchableOpacity style={StyleSheet.flatten([styles.loginBtn, { backgroundColor: theme === 'dark' ? 'rgba(255,255,255,0.03)' : 'rgba(0,0,0,0.02)', borderColor: currentColors.border }])}>
+                     <Text style={[styles.loginBtnText, { color: currentColors.text, fontFamily: getFontFamily(language, 'black') }]}>LOG IN</Text>
                    </TouchableOpacity>
                  </Link>
                </View>

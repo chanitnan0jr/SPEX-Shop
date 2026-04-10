@@ -4,6 +4,8 @@ import React, { useState } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
 import { User, LogIn, UserPlus, LogOut, Package, ShieldCheck, Mail, ShieldAlert } from 'lucide-react'
 import { useAuth } from '@/lib/auth-context'
+import { useUiPreferences } from '@/lib/ui-context'
+import { pickText } from '@/lib/i18n'
 
 export default function ProfilePage() {
   const { user, login, register, logout, isAuthenticated } = useAuth()
@@ -13,29 +15,30 @@ export default function ProfilePage() {
   const [errors, setErrors] = useState<Record<string, string>>({})
   const [globalError, setGlobalError] = useState<string | null>(null)
   const [isShaking, setIsShaking] = useState(false)
+  const { language } = useUiPreferences()
 
   const validateForm = () => {
     const newErrors: Record<string, string> = {}
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
 
     if (!isLogin && !form.name.trim()) {
-      newErrors.name = 'Identity name required'
+      newErrors.name = pickText(language, { en: 'Identity name required', th: 'กรุณาระบุชื่อตัวตนของคุณ' })
     }
 
     if (!form.email.trim()) {
-      newErrors.email = 'Account email required'
+      newErrors.email = pickText(language, { en: 'Account email required', th: 'กรุณาระบุอีเมลบัญชี' })
     } else if (!emailRegex.test(form.email)) {
-      newErrors.email = 'Invalid email format'
+      newErrors.email = pickText(language, { en: 'Invalid email format', th: 'รูปแบบอีเมลไม่ถูกต้อง' })
     }
 
     if (!form.password) {
-      newErrors.password = 'Access code required'
+      newErrors.password = pickText(language, { en: 'Access code required', th: 'กรุณาระบุรหัสผ่าน' })
     } else if (form.password.length < 6) {
-      newErrors.password = 'Short keys are insecure (min 6 chars)'
+      newErrors.password = pickText(language, { en: 'Short keys are insecure (min 6 chars)', th: 'รหัสผ่านสั้นเกินไป (ขั้นต่ำ 6 ตัวอักษร)' })
     }
 
     if (!isLogin && form.password !== form.confirmPassword) {
-      newErrors.confirmPassword = 'Access key disparity detected'
+      newErrors.confirmPassword = pickText(language, { en: 'Access key disparity detected', th: 'รหัสผ่านไม่ตรงกัน' })
     }
 
     setErrors(newErrors)
@@ -59,7 +62,7 @@ export default function ProfilePage() {
         await register(form)
       }
     } catch (err: any) {
-      const msg = err?.response?.data?.error ?? 'Access denied. Verify your credentials.'
+      const msg = err?.response?.data?.error ?? pickText(language, { en: 'Access denied. Verify your credentials.', th: 'การเข้าถึงถูกปฏิเสธ โปรดตรวจสอบข้อมูลประจำตัวของคุณ' })
       setGlobalError(msg)
       setIsShaking(true)
       setTimeout(() => setIsShaking(false), 500)
@@ -90,7 +93,7 @@ export default function ProfilePage() {
           <div className="relative text-center mb-10 space-y-2">
             <h1 className="text-4xl font-black uppercase tracking-tighter neon-text-cyan flex items-center justify-center gap-3">
               {isLogin ? <LogIn className="h-8 w-8" /> : <UserPlus className="h-8 w-8" />}
-              {isLogin ? 'Log In' : 'Register'}
+              {isLogin ? pickText(language, { en: 'Log In', th: 'เข้าสู่ระบบ' }) : pickText(language, { en: 'Register', th: 'ลงทะเบียน' })}
             </h1>
             <p className="text-slate-400 font-bold uppercase tracking-[0.2em] text-[10px]">
               </p>
@@ -122,11 +125,13 @@ export default function ProfilePage() {
 
                 {!isLogin && (
                   <div className="space-y-2">
-                    <label className="text-[10px] font-black uppercase tracking-widest text-slate-500 ml-4">Full Name</label>
+                    <label className="text-[10px] font-black uppercase tracking-widest text-slate-500 ml-4">
+                      {pickText(language, { en: 'Full Name', th: 'ชื่อ-นามสกุล' })}
+                    </label>
                     <input 
                       type="text" 
                       required
-                      placeholder="Enter your name"
+                      placeholder={pickText(language, { en: 'Enter your name', th: 'ระบุชื่อของคุณ' })}
                       className={`w-full bg-slate-50 dark:bg-slate-900 border rounded-2xl py-4 px-6 text-xs font-black tracking-widest text-slate-950 dark:text-white transition-all focus:outline-none focus:ring-4 ${
                         errors.name 
                           ? 'border-red-500/50 focus:border-red-500 focus:ring-red-500/10' 
@@ -143,7 +148,9 @@ export default function ProfilePage() {
                 )}
                 
                 <div className="space-y-2">
-                  <label className="text-[10px] font-black uppercase tracking-widest text-slate-500 ml-4">Email Address</label>
+                  <label className="text-[10px] font-black uppercase tracking-widest text-slate-500 ml-4">
+                    {pickText(language, { en: 'Email Address', th: 'ที่อยู่อีเมล' })}
+                  </label>
                   <input 
                     type="email" 
                     required
@@ -163,7 +170,9 @@ export default function ProfilePage() {
                 </div>
 
                 <div className="space-y-2">
-                  <label className="text-[10px] font-black uppercase tracking-widest text-slate-500 ml-4">Password</label>
+                  <label className="text-[10px] font-black uppercase tracking-widest text-slate-500 ml-4">
+                    {pickText(language, { en: 'Password', th: 'รหัสผ่าน' })}
+                  </label>
                   <input 
                     type="password" 
                     required
@@ -184,7 +193,9 @@ export default function ProfilePage() {
 
                 {!isLogin && (
                   <div className="space-y-2">
-                    <label className="text-[10px] font-black uppercase tracking-widest text-slate-500 ml-4">Verify Password</label>
+                    <label className="text-[10px] font-black uppercase tracking-widest text-slate-500 ml-4">
+                      {pickText(language, { en: 'Verify Password', th: 'ยืนยันรหัสผ่าน' })}
+                    </label>
                     <input 
                       type="password" 
                       required
@@ -211,7 +222,11 @@ export default function ProfilePage() {
               disabled={loading}
               className="w-full py-5 rounded-2xl bg-slate-950 dark:bg-cyan-500/10 border-2 border-slate-950 dark:border-cyan-500/30 text-white dark:text-cyan-400 hover:bg-slate-800 dark:hover:bg-cyan-500 dark:hover:text-black font-black uppercase tracking-widest shadow-2xl shadow-slate-950/40 dark:shadow-[0_0_20px_rgba(0,243,255,0.2)] transition-all cursor-pointer hover:scale-[1.02] active:scale-[0.98] relative overflow-hidden"
             >
-              {loading ? 'Processing...' : isLogin ? 'Log In' : 'Register'}
+              {loading 
+                ? pickText(language, { en: 'Processing...', th: 'กำลังดำเนินการ...' }) 
+                : isLogin 
+                  ? pickText(language, { en: 'Log In', th: 'เข้าสู่ระบบ' }) 
+                  : pickText(language, { en: 'Register', th: 'ลงทะเบียน' })}
             </button>
           </form>
 
@@ -224,8 +239,10 @@ export default function ProfilePage() {
               }}
               className="inline-flex items-center gap-2 px-6 py-3 rounded-full border border-slate-200 dark:border-white/5 bg-slate-50/50 dark:bg-white/5 text-[10px] font-black uppercase tracking-widest text-slate-500 hover:text-slate-950 dark:hover:text-white hover:border-sky-500/30 dark:hover:border-cyan-500/30 hover:bg-white dark:hover:bg-white/10 transition-all cursor-pointer shadow-sm hover:shadow-md"
             >
-              <UserPlus className="h-3.5 w-3.5" />
-              {isLogin ? "New to SPEX-Shop? Create Account" : "Existing User? Log In Here"}
+              {isLogin ? <UserPlus className="h-3.5 w-3.5" /> : <LogIn className="h-3.5 w-3.5" />}
+              {isLogin 
+                ? pickText(language, { en: "New to SPEX-Shop? Create Account", th: "ผู้ใช้ใหม่? สร้างบัญชีที่นี่" }) 
+                : pickText(language, { en: "Existing User? Log In Here", th: "มีบัญชีแล้ว? เข้าสู่ระบบที่นี่" })}
             </button>
           </div>
         </motion.div>
@@ -256,27 +273,37 @@ export default function ProfilePage() {
               </div>
               <div className="flex items-center gap-2 px-4 py-2 rounded-xl bg-emerald-500/10 border border-emerald-500/20">
                 <ShieldCheck className="h-3.5 w-3.5 text-emerald-500" />
-                <span className="text-[10px] font-black text-emerald-500 uppercase tracking-widest">Neural Link Verified</span>
+                <span className="text-[10px] font-black text-emerald-500 uppercase tracking-widest">
+                  {pickText(language, { en: 'Neural Link Verified', th: 'ตรวจสอบการเชื่อมต่อประสาทแล้ว' })}
+                </span>
               </div>
               
               <button 
                 onClick={logout}
                 className="flex items-center gap-2 text-[10px] font-black uppercase tracking-widest text-slate-500 hover:text-red-500 transition-colors pt-4 cursor-pointer"
               >
-                <LogOut className="h-4 w-4" /> Sign Out
+                <LogOut className="h-4 w-4" /> {pickText(language, { en: 'Sign Out', th: 'ลงชื่อออก' })}
               </button>
             </div>
           </motion.div>
 
           {/* Security Status */}
           <div className="glass-card p-8 rounded-[3rem] space-y-4">
-             <h3 className="text-xs font-black uppercase tracking-widest neon-text-magenta">Hardware Security</h3>
+             <h3 className="text-xs font-black uppercase tracking-widest neon-text-magenta">
+               {pickText(language, { en: 'Hardware Security', th: 'ความปลอดภัยของฮาร์ดแวร์' })}
+             </h3>
              <div className="flex items-center justify-between p-4 rounded-2xl bg-slate-50 dark:bg-slate-900/50 border border-slate-200 dark:border-white/5 shadow-sm">
-                <span className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">2FA STATUS</span>
-                <span className="text-[10px] font-black text-sky-600 dark:text-cyan-400">ACTIVE</span>
+                <span className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">
+                  {pickText(language, { en: '2FA STATUS', th: 'สถานะ 2FA' })}
+                </span>
+                <span className="text-[10px] font-black text-sky-600 dark:text-cyan-400">
+                  {pickText(language, { en: 'ACTIVE', th: 'เปิดใช้งาน' })}
+                </span>
              </div>
              <div className="flex items-center justify-between p-4 rounded-2xl bg-slate-50 dark:bg-slate-900/50 border border-slate-200 dark:border-white/5 shadow-sm">
-                <span className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">ENCRYPTION</span>
+                <span className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">
+                  {pickText(language, { en: 'ENCRYPTION', th: 'การเข้ารหัส' })}
+                </span>
                 <span className="text-[10px] font-black text-emerald-600 dark:text-emerald-500">AES-256-NEURAL</span>
              </div>
           </div>
@@ -286,8 +313,12 @@ export default function ProfilePage() {
         <div className="lg:col-span-2 space-y-8">
           <div className="flex items-end justify-between px-6">
              <div className="space-y-1">
-               <h2 className="text-4xl font-black uppercase tracking-tighter text-slate-950 dark:text-white">Allocation History</h2>
-               <p className="text-[10px] font-black text-slate-400 dark:text-slate-500 uppercase tracking-widest">Previous hardware translocations</p>
+               <h2 className="text-4xl font-black uppercase tracking-tighter text-slate-950 dark:text-white">
+                 {pickText(language, { en: 'Allocation History', th: 'ประวัติการจัดสรร' })}
+               </h2>
+               <p className="text-[10px] font-black text-slate-400 dark:text-slate-500 uppercase tracking-widest">
+                 {pickText(language, { en: 'Previous hardware translocations', th: 'การเคลื่อนย้ายฮาร์ดแวร์ก่อนหน้านี้' })}
+               </p>
              </div>
              <Package className="h-8 w-8 text-slate-700" />
           </div>
@@ -310,11 +341,15 @@ export default function ProfilePage() {
               >
                 <div className="flex items-start justify-between mb-6">
                   <div>
-                    <p className="text-[10px] font-black text-cyan-500 uppercase tracking-[0.2em] mb-1">ALLOCATION #829{i}-ZX</p>
-                    <p className="text-xs font-bold text-slate-400">TIMESTAMP: 2026-04-10 12:0{i}:24</p>
+                    <p className="text-[10px] font-black text-cyan-500 uppercase tracking-[0.2em] mb-1">
+                      {pickText(language, { en: 'ALLOCATION', th: 'การจัดสรร' })} #829{i}-ZX
+                    </p>
+                    <p className="text-xs font-bold text-slate-400">
+                      {pickText(language, { en: 'TIMESTAMP', th: 'ประทับเวลา' })}: 2026-04-10 12:0{i}:24
+                    </p>
                   </div>
                   <div className="px-4 py-1.5 rounded-full bg-emerald-500/10 border border-emerald-500/20 text-[10px] font-black text-emerald-500 tracking-widest">
-                    DELIVERED
+                    {pickText(language, { en: 'DELIVERED', th: 'ส่งมอบแล้ว' })}
                   </div>
                 </div>
 
@@ -329,12 +364,14 @@ export default function ProfilePage() {
                    </div>
                    
                    <div className="flex-1">
-                      <p className="text-[10px] font-black text-slate-500 uppercase tracking-widest mb-1">TOTAL CREDITS</p>
+                      <p className="text-[10px] font-black text-slate-500 uppercase tracking-widest mb-1">
+                        {pickText(language, { en: 'TOTAL CREDITS', th: 'เครดิตรวมทั้งหมด' })}
+                      </p>
                       <p className="text-2xl font-black text-slate-950 dark:text-white">฿{(45900 + (i * 12800)).toLocaleString()}</p>
                    </div>
 
                    <button className="px-6 py-3 rounded-xl border border-slate-200 dark:border-white/10 text-[10px] font-black uppercase tracking-widest hover:bg-slate-950 dark:hover:bg-white hover:text-white dark:hover:text-slate-950 transition-all cursor-pointer">
-                     View Manifest
+                     {pickText(language, { en: 'View Manifest', th: 'ดูรายการสินค้า' })}
                    </button>
                 </div>
               </motion.div>
@@ -343,7 +380,9 @@ export default function ProfilePage() {
 
           <div className="p-12 text-center bg-slate-900/10 rounded-[3rem] border border-dashed border-white/5">
              <ShieldAlert className="h-10 w-10 text-slate-700 mx-auto mb-4" />
-             <p className="text-slate-500 font-bold uppercase tracking-widest text-xs">Access legacy data through the neural console</p>
+             <p className="text-slate-500 font-bold uppercase tracking-widest text-xs">
+               {pickText(language, { en: 'Access legacy data through the neural console', th: 'เข้าถึงข้อมูลเดิมผ่านคอนโซลประสาท' })}
+             </p>
           </div>
         </div>
       </div>

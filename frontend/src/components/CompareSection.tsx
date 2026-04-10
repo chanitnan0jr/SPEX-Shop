@@ -85,7 +85,7 @@ export function CompareSection() {
         <div className="space-y-4">
           <div className="flex items-center gap-2 text-[11px] font-black uppercase tracking-[0.3em] text-sky-500">
              <BarChart3 className="h-3.5 w-3.5" />
-             Specification Radar
+             {pickText(language, { en: 'Specification Radar', th: 'เรดาร์ข้อมูลจำเพาะ' })}
           </div>
           <h1 className="text-6xl font-black tracking-tighter text-slate-950 dark:text-white uppercase leading-none">
             {pickText(language, { en: 'Compare Devices', th: 'เปรียบเทียบอุปกรณ์' })}
@@ -181,7 +181,9 @@ export function CompareSection() {
                <div className="min-w-[900px]">
                  {/* Sticky Header Row */}
                  <div className="sticky top-0 z-40 grid grid-cols-[minmax(140px,1.2fr)_repeat(4,1fr)] items-center p-6 border-b border-slate-200/50 dark:border-white/5 bg-slate-50/95 dark:bg-slate-950/95 backdrop-blur-3xl shadow-sm">
-                    <div className="sticky left-0 z-50 bg-inherit text-[11px] font-black text-slate-950 dark:text-white uppercase tracking-[0.2em]">Technical Specs</div>
+                    <div className="sticky left-0 z-50 bg-inherit text-[11px] font-black text-slate-950 dark:text-white uppercase tracking-[0.2em]">
+                      {pickText(language, { en: 'Technical Specs', th: 'ข้อมูลจำเพาะทางเทคนิค' })}
+                    </div>
                     {slots.map((spec, i) => (
                       <div key={i} className="text-[10px] font-black text-center text-slate-950 dark:text-white uppercase tracking-widest px-2 truncate border-l border-slate-200/30 dark:border-white/5 h-full flex items-center justify-center">
                         {spec?.model || '—'}
@@ -193,82 +195,89 @@ export function CompareSection() {
                   {/* GENERAL INFO */}
                   <SpecSection 
                     icon={Terminal} 
-                    title="General Information" 
+                    title={pickText(language, { en: 'General Information', th: 'ข้อมูลทั่วไป' })}
                     rows={[
-                      { label: 'Price (THB)', key: 'price_thb', isCurrency: true },
-                      { label: 'Release Year', section: 'Dataset Info', key: 'Release year' },
-                      { label: 'Operating System', key: 'os' },
+                      { label: pickText(language, { en: 'Price (THB)', th: 'ราคา (บาท)' }), key: 'price_thb', isCurrency: true },
+                      { label: pickText(language, { en: 'Release Year', th: 'ปีที่เปิดตัว' }), section: 'Dataset Info', key: 'Release year' },
+                      { label: pickText(language, { en: 'Operating System', th: 'ระบบปฏิบัติการ' }), key: 'os' },
                     ]} 
                     slots={slots}
+                    language={language}
                   />
                   {/* DISPLAY SECTION */}
                   <SpecSection 
                     icon={Smartphone} 
-                    title="Display Settings" 
+                    title={pickText(language, { en: 'Display Settings', th: 'การตั้งค่าหน้าจอ' })}
                     rows={[
-                      { label: 'Panel Type', key: 'display' },
-                      { label: 'Screen Size', section: 'Display', key: 'Screen size' },
-                      { label: 'Refresh Rate', section: 'Display', key: 'Refresh rate' },
+                      { label: pickText(language, { en: 'Panel Type', th: 'ประเภทหน้าจอ' }), key: 'display' },
+                      { label: pickText(language, { en: 'Screen Size', th: 'ขนาดหน้าจอ' }), section: 'Display', key: 'Screen size' },
+                      { label: pickText(language, { en: 'Refresh Rate', th: 'อัตราการรีเฟรช' }), section: 'Display', key: 'Refresh rate' },
                     ]} 
                     slots={slots}
+                    language={language}
                   />
                   {/* PROCESSOR SECTION */}
                   <SpecSection 
                     icon={Cpu} 
-                    title="Processing Module" 
+                    title={pickText(language, { en: 'Processing Module', th: 'โมดูลการประมวลผล' })}
                     rows={[
-                      { label: 'Chipset', key: 'chipset' },
+                      { label: pickText(language, { en: 'Chipset', th: 'ชิปเซ็ต' }), key: 'chipset' },
                       { label: 'GPU', section: 'Performance', key: 'GPU' },
-                      { label: 'RAM Capacity', key: 'ram' },
-                      { label: 'Storage Capacity', key: 'storage' },
+                      { label: pickText(language, { en: 'RAM Capacity', th: 'ความจุ RAM' }), key: 'ram' },
+                      { label: pickText(language, { en: 'Storage Capacity', th: 'ความจุพื้นที่จัดเก็บ' }), key: 'storage' },
                     ]} 
                     slots={slots}
+                    language={language}
                   />
                   {/* CAMERA SECTION */}
                   <SpecSection 
                     icon={Camera} 
-                    title="Optics & Sensors" 
+                    title={pickText(language, { en: 'Optics & Sensors', th: 'เลนส์และเซ็นเซอร์' })}
                     rows={[
-                      { label: 'Main Resolution', key: 'camera' },
-                      { label: 'Rear Details', section: 'Camera', key: 'Rear camera' },
-                      { label: 'Front Details', section: 'Camera', key: 'Front camera' },
+                      { label: pickText(language, { en: 'Main Resolution', th: 'ความละเอียดหลัก' }), key: 'camera' },
+                      { label: pickText(language, { en: 'Rear Details', th: 'รายละเอียดกล้องหลัง' }), section: 'Camera', key: 'Rear camera' },
+                      { label: pickText(language, { en: 'Front Details', th: 'รายละเอียดกล้องหน้า' }), section: 'Camera', key: 'Front camera' },
                     ]} 
                     slots={slots}
+                    language={language}
                   />
                   {/* BATTERY SECTION */}
                   <SpecSection 
                     icon={Battery} 
-                    title="Energy & Power" 
+                    title={pickText(language, { en: 'Energy & Power', th: 'พลังงานและแบตเตอรี่' })}
                     rows={[
-                      { label: 'Battery Capacity', key: 'battery' },
-                      { label: 'Fast Charging', section: 'Battery', key: 'Fast charging' },
+                      { label: pickText(language, { en: 'Battery Capacity', th: 'ความจุแบตเตอรี่' }), key: 'battery' },
+                      { label: pickText(language, { en: 'Fast Charging', th: 'ชาร์จเร็ว' }), section: 'Battery', key: 'Fast charging' },
                     ]} 
                     slots={slots}
+                    language={language}
                   />
                   {/* CONNECTIVITY SECTION */}
                   <SpecSection 
                     icon={Plus} 
-                    title="Connectivity" 
+                    title={pickText(language, { en: 'Connectivity', th: 'การเชื่อมต่อ' })}
                     rows={[
-                      { label: 'Network Support', section: 'Connectivity', key: 'Network' },
-                      { label: 'Dual SIM', section: 'Connectivity', key: 'Dual SIM' },
+                      { label: pickText(language, { en: 'Network Support', th: 'การรองรับเครือข่าย' }), section: 'Connectivity', key: 'Network' },
+                      { label: pickText(language, { en: 'Dual SIM', th: 'รองรับสองซิม' }), section: 'Connectivity', key: 'Dual SIM' },
                       { label: 'Bluetooth', section: 'Connectivity', key: 'Bluetooth' },
                       { label: 'Wi-Fi', section: 'Connectivity', key: 'Wi-Fi' },
                       { label: 'USB Type', section: 'Connectivity', key: 'USB' },
                     ]} 
                     slots={slots}
+                    language={language}
                   />
                   {/* BUILD SECTION */}
                   <SpecSection 
                     icon={Smartphone} 
-                    title="Build & Design" 
+                    title={pickText(language, { en: 'Build & Design', th: 'โครงสร้างและการออกแบบ' })}
                     rows={[
-                      { label: 'Weight', section: 'Build', key: 'Weight' },
-                      { label: 'Thickness', section: 'Build', key: 'Thickness' },
-                      { label: 'Body Material', section: 'Build', key: 'Body material' },
-                      { label: 'Biometrics', section: 'Build', key: 'Fingerprint sensor' },
+                      { label: pickText(language, { en: 'Weight', th: 'น้ำหนัก' }), section: 'Build', key: 'Weight' },
+                      { label: pickText(language, { en: 'Thickness', th: 'ความหนา' }), section: 'Build', key: 'Thickness' },
+                      { label: pickText(language, { en: 'Body Material', th: 'วัสดุตัวเครื่อง' }), section: 'Build', key: 'Body material' },
+                      { label: pickText(language, { en: 'Biometrics', th: 'ไบโอเมตริกซ์' }), section: 'Build', key: 'Fingerprint sensor' },
                     ]} 
                     slots={slots}
+                    language={language}
                   />
                 </div>
               </div>
@@ -287,7 +296,7 @@ export function CompareSection() {
   )
 }
 
-function SpecSection({ icon: Icon, title, rows, slots }: { icon: any, title: string, rows: any[], slots: (Spec | null)[] }) {
+function SpecSection({ icon: Icon, title, rows, slots, language }: { icon: any, title: string, rows: any[], slots: (Spec | null)[], language: any }) {
   return (
     <div className="group/section">
       <div className="sticky left-0 z-30 bg-inherit border-b border-slate-200/50 dark:border-white/5 px-6 py-4 flex items-center gap-3">

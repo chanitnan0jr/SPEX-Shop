@@ -299,7 +299,7 @@ export function ChatBox() {
               <h2 className="font-heading text-lg font-black tracking-tight leading-none text-slate-950 dark:text-white">
                 {pickText(language, {
                   en: 'SPEX AI Assistant',
-                  th: 'ผู้ช่วย Specbot AI',
+                  th: 'ผู้ช่วย SPEX-Shop',
                 })}
               </h2>
               <p className="text-[9px] font-bold uppercase tracking-widest text-slate-400 group-hover:text-sky-500 transition-colors">
@@ -676,14 +676,14 @@ export function ChatBox() {
                             className={`flex items-center gap-1.5 text-[10px] font-black uppercase tracking-widest transition-all ${message.rating === 1 ? 'text-emerald-500 scale-110' : 'text-slate-400 hover:text-emerald-500'}`}
                           >
                             <ThumbsUp className={`h-3 w-3 ${message.rating === 1 ? 'fill-emerald-500' : ''}`} />
-                            {message.rating === 1 ? 'Helpful' : 'Like'}
+                            {message.rating === 1 ? pickText(language, { en: 'Helpful', th: 'มีประโยชน์' }) : pickText(language, { en: 'Like', th: 'ถูกใจ' })}
                           </button>
                           <button
                             onClick={() => handleFeedback(message.id, -1)}
                             className={`flex items-center gap-1.5 text-[10px] font-black uppercase tracking-widest transition-all ${message.rating === -1 ? 'text-rose-500 scale-110' : 'text-slate-400 hover:text-rose-500'}`}
                           >
                             <ThumbsDown className={`h-3 w-3 ${message.rating === -1 ? 'fill-rose-500' : ''}`} />
-                            {message.rating === -1 ? 'Not Helpful' : 'Unlike'}
+                            {message.rating === -1 ? pickText(language, { en: 'Not Helpful', th: 'ไม่เป็นประโยชน์' }) : pickText(language, { en: 'Unlike', th: 'ไม่ถูกใจ' })}
                           </button>
                         </div>
                       </div>

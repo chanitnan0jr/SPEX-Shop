@@ -49,6 +49,8 @@ import {
 import { Colors, Fonts, Spacing, Radius } from '../lib/constants'
 import { searchProducts } from '../lib/api'
 import type { SearchResponse, SearchSource } from '../types/spec'
+import { useUiPreferences } from '../context/ui-context'
+import { getFontFamily } from '../lib/fonts'
 
 if (Platform.OS === 'android' && UIManager.setLayoutAnimationEnabledExperimental) {
   UIManager.setLayoutAnimationEnabledExperimental(true)
@@ -87,6 +89,8 @@ interface ChatbotPopupProps {
 
 export default function ChatbotPopup({ visible, onClose }: ChatbotPopupProps) {
   const router = useRouter()
+  const { language, theme } = useUiPreferences()
+  const currentColors = theme === 'dark' ? Colors.dark : Colors.light
   const [query, setQuery] = useState('')
   const [isHeaderExpanded, setIsHeaderExpanded] = useState(true)
   const [messages, setMessages] = useState<Message[]>([])
@@ -311,13 +315,13 @@ export default function ChatbotPopup({ visible, onClose }: ChatbotPopupProps) {
   }
 
   const renderSourceCard = ({ item }: { item: SearchSource }) => (
-    <View style={styles.sourceCardMini}>
+    <View style={[styles.sourceCardMini, { backgroundColor: theme === 'dark' ? 'rgba(255,255,255,0.05)' : 'rgba(0,0,0,0.03)', borderColor: currentColors.border }]}>
       <View style={styles.sourceHeaderMini}>
         <BarChart3 size={10} color={Colors.primary} />
-        <Text style={styles.sourceBrandMini}>{item.brand.toUpperCase()}</Text>
+        <Text style={[styles.sourceBrandMini, { color: Colors.primary, fontFamily: getFontFamily(language, 'black') }]}>{item.brand.toUpperCase()}</Text>
       </View>
-      <Text style={styles.sourceModelMini} numberOfLines={1}>{item.model}</Text>
-      <Text style={styles.sourceTagMini}>Dataset</Text>
+      <Text style={[styles.sourceModelMini, { color: currentColors.text, fontFamily: getFontFamily(language, 'bold') }]} numberOfLines={1}>{item.model}</Text>
+      <Text style={[styles.sourceTagMini, { color: currentColors.textMuted, fontFamily: getFontFamily(language) }]}>Dataset</Text>
     </View>
   )
 
@@ -326,8 +330,8 @@ export default function ChatbotPopup({ visible, onClose }: ChatbotPopupProps) {
       return (
         <View style={styles.userMsgContainer}>
           <View style={styles.userRow}>
-            <View style={styles.userBubble}>
-              <Text style={styles.userText}>{item.text}</Text>
+            <View style={[styles.userBubble, { borderColor: theme === 'dark' ? 'transparent' : 'rgba(0,0,0,0.05)', borderWidth: theme === 'dark' ? 0 : 1 }]}>
+              <Text style={[styles.userText, { color: '#0a0d14', fontFamily: getFontFamily(language, 'medium') }]}>{item.text}</Text>
             </View>
             <View style={styles.userIconCircle}>
               <UserIcon size={16} color="#fff" />
@@ -340,15 +344,15 @@ export default function ChatbotPopup({ visible, onClose }: ChatbotPopupProps) {
     return (
       <View style={styles.botMsgContainer}>
         <View style={styles.botRow}>
-          <View style={styles.botIconCircleSmall}>
+          <View style={[styles.botIconCircleSmall, { backgroundColor: currentColors.surfaceStrong }]}>
             <Bot size={16} color={Colors.primary} />
           </View>
-          <View style={styles.botBubble}>
+          <View style={[styles.botBubble, { backgroundColor: currentColors.surfaceStrong }]}>
             {item.isPending ? (
               <ActivityIndicator size="small" color={Colors.primary} style={{ alignSelf: 'flex-start' }} />
             ) : (
               <>
-                <Text style={styles.botText}>{item.text}</Text>
+                <Text style={[styles.botText, { color: currentColors.text, fontFamily: getFontFamily(language) }]}>{item.text}</Text>
                 {item.sources && item.sources.length > 0 && (
                   <FlatList
                     data={item.sources}
@@ -371,8 +375,8 @@ export default function ChatbotPopup({ visible, onClose }: ChatbotPopupProps) {
                     style={[styles.feedbackBtn, item.feedback === 'dislike' && styles.feedbackBtnActive]}
                     onPress={() => handleFeedback(item.id, 'dislike')}
                   >
-                    <ThumbsDown size={12} color={item.feedback === 'dislike' ? '#fff' : Colors.dark.textMuted} />
-                    <Text style={[styles.feedbackText, item.feedback === 'dislike' && styles.feedbackTextActive]}>UNLIKE</Text>
+                    <ThumbsDown size={12} color={item.feedback === 'dislike' ? '#ef4444' : currentColors.textMuted} />
+                    <Text style={[styles.feedbackText, { color: item.feedback === 'dislike' ? '#ef4444' : currentColors.textMuted, fontFamily: getFontFamily(language, 'black') }]}>UNLIKE</Text>
                   </TouchableOpacity>
                 </View>
               </>
@@ -387,7 +391,10 @@ export default function ChatbotPopup({ visible, onClose }: ChatbotPopupProps) {
     <Modal visible={visible} animationType="fade" transparent onRequestClose={onClose}>
       <View style={styles.overlay}>
         <TouchableOpacity style={styles.dismissArea} activeOpacity={1} onPress={onClose} />
-        <KeyboardAvoidingView behavior={Platform.OS === 'ios' ? 'padding' : 'height'} style={styles.popupContainer}>
+        <KeyboardAvoidingView 
+          behavior={Platform.OS === 'ios' ? 'padding' : 'height'} 
+          style={[styles.popupContainer, { backgroundColor: currentColors.surface, borderColor: currentColors.border }]}
+        >
           
           {/* SECTION 1: COLLAPSIBLE HEADER */}
           <View style={styles.sectionHeader}>
@@ -397,12 +404,12 @@ export default function ChatbotPopup({ visible, onClose }: ChatbotPopupProps) {
                   <MessagesSquare size={20} color={Colors.primary} />
                 </View>
                 <View>
-                  <Text style={styles.headerTitle}>SPEX-Shop AI Assistant</Text>
-                  <Text style={styles.headerSubtitle}>CLICK TO {isHeaderExpanded ? 'COLLAPSE' : 'EXPAND'}</Text>
+                  <Text style={[styles.headerTitle, { color: currentColors.text, fontFamily: getFontFamily(language, 'bold') }]}>SPEX-Shop AI Assistant</Text>
+                  <Text style={[styles.headerSubtitle, { color: currentColors.textMuted, fontFamily: getFontFamily(language, 'black') }]}>CLICK TO {isHeaderExpanded ? 'COLLAPSE' : 'EXPAND'}</Text>
                 </View>
               </View>
               <Animated.View style={[styles.titleRight, chevronAnimatedStyle]}>
-                <ChevronDown size={20} color={Colors.dark.textMuted} />
+                <ChevronDown size={20} color={currentColors.textMuted} />
               </Animated.View>
             </TouchableOpacity>
 
@@ -415,15 +422,25 @@ export default function ChatbotPopup({ visible, onClose }: ChatbotPopupProps) {
                 }}
               >
                 <View style={styles.badgeRow}>
-                  <View style={styles.badge}><Text style={styles.badgeText}>KAGGLE_DATA</Text></View>
-                  <View style={styles.badge}><Text style={styles.badgeText}>RAG</Text></View>
-                  <View style={styles.badge}><Text style={styles.badgeText}>SCBX10_TYPHOON</Text></View>
+                  <View style={[styles.badge, { backgroundColor: theme === 'dark' ? 'rgba(255,255,255,0.05)' : 'rgba(0,0,0,0.03)', borderColor: currentColors.border }]}>
+                    <Text style={[styles.badgeText, { color: currentColors.textMuted, fontFamily: getFontFamily(language, 'black') }]}>KAGGLE_DATA</Text>
+                  </View>
+                  <View style={[styles.badge, { backgroundColor: theme === 'dark' ? 'rgba(255,255,255,0.05)' : 'rgba(0,0,0,0.03)', borderColor: currentColors.border }]}>
+                    <Text style={[styles.badgeText, { color: currentColors.textMuted, fontFamily: getFontFamily(language, 'black') }]}>RAG</Text>
+                  </View>
+                  <View style={[styles.badge, { backgroundColor: theme === 'dark' ? 'rgba(255,255,255,0.05)' : 'rgba(0,0,0,0.03)', borderColor: currentColors.border }]}>
+                    <Text style={[styles.badgeText, { color: currentColors.textMuted, fontFamily: getFontFamily(language, 'black') }]}>SCBX10_TYPHOON</Text>
+                  </View>
                 </View>
 
                 <View style={styles.examplesContainer}>
                   {SUGGESTED_QUERIES.map(q => (
-                    <TouchableOpacity key={q} style={styles.exampleBtn} onPress={() => handleSearch(q)}>
-                      <Text style={styles.exampleText}>{q}</Text>
+                    <TouchableOpacity 
+                      key={q} 
+                      style={[styles.exampleBtn, { backgroundColor: theme === 'dark' ? 'rgba(255,255,255,0.05)' : 'rgba(0,0,0,0.03)', borderColor: currentColors.border }]} 
+                      onPress={() => handleSearch(q)}
+                    >
+                      <Text style={[styles.exampleText, { color: currentColors.text, fontFamily: getFontFamily(language, 'semibold') }]}>{q}</Text>
                     </TouchableOpacity>
                   ))}
                 </View>
@@ -432,15 +449,19 @@ export default function ChatbotPopup({ visible, onClose }: ChatbotPopupProps) {
                   <View style={styles.recentContainer}>
                     <View style={styles.recentHeader}>
                        <View style={styles.recentIconRow}>
-                          <History size={12} color={Colors.dark.textMuted} />
-                          <Text style={styles.recentLabel}>RECENT SEARCHES</Text>
+                          <History size={12} color={currentColors.textMuted} />
+                          <Text style={[styles.recentLabel, { color: currentColors.textMuted, fontFamily: getFontFamily(language, 'black') }]}>RECENT SEARCHES</Text>
                        </View>
-                       <TouchableOpacity onPress={clearHistory}><Text style={styles.clearText}>CLEAR</Text></TouchableOpacity>
+                       <TouchableOpacity onPress={clearHistory}><Text style={[styles.clearText, { fontFamily: getFontFamily(language, 'black') }]}>CLEAR</Text></TouchableOpacity>
                     </View>
                     <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.recentList}>
                       {history.map(h => (
-                        <TouchableOpacity key={h} style={styles.recentChip} onPress={() => handleSearch(h)}>
-                          <Text style={styles.recentChipText} numberOfLines={1}>{h}</Text>
+                        <TouchableOpacity 
+                          key={h} 
+                          style={[styles.recentChip, { backgroundColor: theme === 'dark' ? 'rgba(255,255,255,0.05)' : 'rgba(0,0,0,0.03)', borderColor: currentColors.border }]} 
+                          onPress={() => handleSearch(h)}
+                        >
+                          <Text style={[styles.recentChipText, { color: currentColors.textSecondary, fontFamily: getFontFamily(language) }]} numberOfLines={1}>{h}</Text>
                         </TouchableOpacity>
                       ))}
                     </ScrollView>
@@ -471,72 +492,75 @@ export default function ChatbotPopup({ visible, onClose }: ChatbotPopupProps) {
           />
 
           {/* SECTION 3: TEXT BAR */}
-          <View style={styles.textBarSection}>
-            <View style={styles.inputWrapper}>
+           <View style={[styles.textBarSection, { borderTopColor: currentColors.border }]}>
+            <View style={[styles.inputWrapper, { backgroundColor: theme === 'dark' ? 'rgba(255,255,255,0.05)' : 'rgba(0,0,0,0.03)', borderColor: currentColors.border }]}>
               <TextInput
-                style={[styles.input, { maxHeight: 100 }]}
+                style={[styles.input, { maxHeight: 100, color: currentColors.text, fontFamily: getFontFamily(language) }]}
                 value={query}
                 onChangeText={setQuery}
                 placeholder="Ask about smartphones..."
-                placeholderTextColor={Colors.dark.textMuted}
+                placeholderTextColor={currentColors.textMuted}
                 onSubmitEditing={() => handleSearch()}
                 multiline
               />
               <TouchableOpacity
-                style={[styles.submitBtn, searchMutation.isPending && styles.submitBtnDisabled]}
+                style={[styles.submitBtn, searchMutation.isPending && styles.submitBtnDisabled, { backgroundColor: theme === 'dark' ? currentColors.textSecondary : Colors.primary }]}
                 onPress={() => handleSearch()}
                 disabled={searchMutation.isPending}
               >
                 {searchMutation.isPending ? (
                   <ActivityIndicator size="small" color="#fff" />
                 ) : (
-                  <ArrowRight size={20} color={Colors.dark.background} />
+                  <ArrowRight size={20} color={theme === 'dark' ? Colors.dark.background : '#fff'} />
                 )}
               </TouchableOpacity>
             </View>
             <View style={styles.textBarFooter}>
-               <TouchableOpacity style={styles.footerBtn} onPress={() => setActiveOverlay('history')}>
-                  <History size={16} color={Colors.dark.text} />
-                  <Text style={styles.footerBtnText}>SESSIONS EXPLORER</Text>
-                  <ChevronUp size={14} color={Colors.dark.text} />
+               <TouchableOpacity 
+                style={[styles.footerBtn, { backgroundColor: theme === 'dark' ? 'rgba(255,255,255,0.05)' : 'rgba(0,0,0,0.03)', borderColor: currentColors.border }]} 
+                onPress={() => setActiveOverlay('history')}
+              >
+                  <History size={16} color={currentColors.text} />
+                  <Text style={[styles.footerBtnText, { color: currentColors.text, fontFamily: getFontFamily(language, 'black') }]}>SESSIONS EXPLORER</Text>
+                  <ChevronUp size={14} color={currentColors.text} />
                </TouchableOpacity>
                <View style={styles.footerIcons}>
                   <TouchableOpacity 
-                    style={styles.iconCircle}
+                    style={[styles.iconCircle, { backgroundColor: theme === 'dark' ? 'rgba(255,255,255,0.05)' : 'rgba(0,0,0,0.03)', borderColor: currentColors.border }]}
                     onPress={() => setActiveOverlay('new_chat')}
                   >
-                    <Plus size={18} color={Colors.dark.textMuted} />
+                    <Plus size={18} color={currentColors.textMuted} />
                   </TouchableOpacity>
                </View>
             </View>
           </View>
 
           {/* OVERLAYS */}
-          {activeOverlay === 'history' && (
-            <Animated.View style={styles.overlayContainer}>
+           {activeOverlay === 'history' && (
+            <Animated.View style={[styles.overlayContainer, { backgroundColor: currentColors.background }]}>
               <View style={styles.overlayHeader}>
                 <View style={styles.overlayTitleRow}>
                   <View style={styles.overlayIconCircle}>
                     <History size={18} color="#fff" />
                   </View>
                   <View>
-                    <Text style={styles.overlayTitleText}>SESSIONS EXPLORER</Text>
-                    <Text style={styles.overlaySubtitleText}>{savedSessions.length} SAVED CONVERSATIONS</Text>
+                    <Text style={[styles.overlayTitleText, { color: currentColors.text, fontFamily: getFontFamily(language, 'black') }]}>SESSIONS EXPLORER</Text>
+                    <Text style={[styles.overlaySubtitleText, { color: currentColors.textMuted, fontFamily: getFontFamily(language, 'bold') }]}>{savedSessions.length} SAVED CONVERSATIONS</Text>
                   </View>
                 </View>
                 <TouchableOpacity onPress={() => setActiveOverlay('none')}>
-                  <X size={20} color={Colors.dark.textMuted} />
+                  <X size={20} color={currentColors.textMuted} />
                 </TouchableOpacity>
               </View>
               <ScrollView contentContainerStyle={styles.overlayScroll}>
                 {/* ACTIVE SESSION CARD */}
                 {messages.length > 0 && activeSessionId && (
-                  <View style={[styles.historyCard, styles.activeHistoryCard]}>
+                  <View style={[styles.historyCard, styles.activeHistoryCard, { backgroundColor: theme === 'dark' ? 'rgba(255,255,255,0.05)' : 'rgba(0,0,0,0.02)', borderColor: currentColors.border }]}>
                     <View style={styles.historyCardHeader}>
                       <Text style={styles.activeTag}>Current Session</Text>
                       <View style={styles.cardActions}>
                         <TouchableOpacity style={styles.editBtn} onPress={() => editingSessionId === activeSessionId ? handleSaveRename() : handleStartRename({ id: activeSessionId, title: activeSessionTitle || activeSessionId })}>
-                          {editingSessionId === activeSessionId ? <Check size={16} color={Colors.primary} /> : <Edit2 size={14} color={Colors.dark.textMuted} />}
+                          {editingSessionId === activeSessionId ? <Check size={16} color={Colors.primary} /> : <Edit2 size={14} color={currentColors.textMuted} />}
                         </TouchableOpacity>
                         <TouchableOpacity style={styles.editBtn} onPress={() => {
                           setPendingDeleteId(activeSessionId)
@@ -549,7 +573,7 @@ export default function ChatbotPopup({ visible, onClose }: ChatbotPopupProps) {
                     
                     {editingSessionId === activeSessionId ? (
                       <TextInput
-                        style={styles.renameInput}
+                        style={[styles.renameInput, { color: currentColors.text, borderBottomColor: Colors.primary }]}
                         value={tempTitle}
                         onChangeText={setTempTitle}
                         autoFocus
@@ -558,23 +582,23 @@ export default function ChatbotPopup({ visible, onClose }: ChatbotPopupProps) {
                       />
                     ) : (
                       <TouchableOpacity style={{ flex: 1 }} onPress={() => setActiveOverlay('none')}>
-                        <Text style={[styles.historyCardTitle, { color: '#fff' }]}>
+                        <Text style={[styles.historyCardTitle, { color: currentColors.text, fontFamily: getFontFamily(language, 'bold') }]}>
                           {activeSessionTitle || activeSessionId}
                         </Text>
                       </TouchableOpacity>
                     )}
                     
-                    <Text style={styles.historyCardMeta}>{activeSessionTimestamp}</Text>
+                    <Text style={[styles.historyCardMeta, { color: currentColors.textMuted, fontFamily: getFontFamily(language, 'bold') }]}>{activeSessionTimestamp}</Text>
                   </View>
                 )}
 
                 {/* ARCHIVED SESSIONS */}
                 {savedSessions.map(session => (
-                  <View key={session.id} style={styles.historyCard}>
+                  <View key={session.id} style={[styles.historyCard, { backgroundColor: 'rgba(20, 104, 255, 0.05)', borderColor: 'rgba(20, 104, 255, 0.2)' }]}>
                     <View style={styles.historyCardHeader}>
                       {editingSessionId === session.id ? (
                         <TextInput
-                          style={styles.renameInput}
+                          style={[styles.renameInput, { color: currentColors.text, borderBottomColor: Colors.primary }]}
                           value={tempTitle}
                           onChangeText={setTempTitle}
                           autoFocus
@@ -586,7 +610,7 @@ export default function ChatbotPopup({ visible, onClose }: ChatbotPopupProps) {
                           style={{ flex: 1 }} 
                           onPress={() => handleResumeSession(session)}
                         >
-                          <Text style={styles.historyCardTitle} numberOfLines={1}>
+                          <Text style={[styles.historyCardTitle, { color: Colors.primary, fontFamily: getFontFamily(language, 'bold') }]} numberOfLines={1}>
                             {session.title}
                           </Text>
                         </TouchableOpacity>
@@ -600,7 +624,7 @@ export default function ChatbotPopup({ visible, onClose }: ChatbotPopupProps) {
                           {editingSessionId === session.id ? (
                             <Check size={16} color={Colors.primary} />
                           ) : (
-                            <Edit2 size={14} color={Colors.dark.textMuted} />
+                            <Edit2 size={14} color={currentColors.textMuted} />
                           )}
                         </TouchableOpacity>
                         <TouchableOpacity 
@@ -614,14 +638,14 @@ export default function ChatbotPopup({ visible, onClose }: ChatbotPopupProps) {
                         </TouchableOpacity>
                       </View>
                     </View>
-                    <Text style={styles.historyCardMeta}>{session.timestamp}</Text>
+                    <Text style={[styles.historyCardMeta, { color: currentColors.textMuted, fontFamily: getFontFamily(language, 'bold') }]}>{session.timestamp}</Text>
                   </View>
                 ))}
                 
                 {savedSessions.length === 0 && messages.length === 0 && (
                   <View style={styles.emptyContainer}>
-                    <History size={48} color={Colors.dark.surfaceStrong} />
-                    <Text style={styles.emptyText}>No saved sessions found.</Text>
+                    <History size={48} color={currentColors.surfaceStrong} />
+                    <Text style={[styles.emptyText, { color: currentColors.textMuted, fontFamily: getFontFamily(language) }]}>No saved sessions found.</Text>
                   </View>
                 )}
               </ScrollView>
@@ -648,10 +672,10 @@ export default function ChatbotPopup({ visible, onClose }: ChatbotPopupProps) {
                 </Text>
                 <View style={styles.confirmBtnRow}>
                   <TouchableOpacity 
-                    style={styles.confirmBtnSecondary} 
+                    style={[styles.confirmBtnSecondary, { borderColor: currentColors.border }]} 
                     onPress={() => setActiveOverlay('none')}
                   >
-                    <Text style={styles.confirmBtnTextSecondary}>
+                    <Text style={[styles.confirmBtnTextSecondary, { color: currentColors.textSecondary, fontFamily: getFontFamily(language, 'black') }]}>
                       {activeOverlay === 'new_chat' ? 'NO, BACK' : 'NO, KEEP IT'}
                     </Text>
                   </TouchableOpacity>
@@ -659,7 +683,7 @@ export default function ChatbotPopup({ visible, onClose }: ChatbotPopupProps) {
                     style={[styles.confirmBtnPrimary, activeOverlay === 'delete' && { backgroundColor: '#ef4444' }]}
                     onPress={activeOverlay === 'new_chat' ? handleStartNewChat : handleConfirmDelete}
                   >
-                    <Text style={styles.confirmBtnTextPrimary}>
+                    <Text style={[styles.confirmBtnTextPrimary, { fontFamily: getFontFamily(language, 'black') }]}>
                       {activeOverlay === 'new_chat' ? 'YES, START' : 'YES, DELETE'}
                     </Text>
                   </TouchableOpacity>

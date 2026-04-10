@@ -20,12 +20,15 @@ import Animated, {
   withDelay,
   Easing
 } from 'react-native-reanimated'
-import { Zap, ShieldCheck, BarChart3, Binary, LayoutGrid, ChevronRight, ChevronLeft, Activity, Cpu, Database, Weight, Sparkles, Mail, Phone, CheckCircle2 } from 'lucide-react-native'
+import { Zap, ShieldCheck, BarChart3, Binary, LayoutGrid, ChevronRight, ChevronLeft, Sparkles, Mail, Phone, CheckCircle2 } from 'lucide-react-native'
 import { Colors, Fonts, Spacing, Radius } from '../../lib/constants'
 import { RadarFingerprint } from '../../components/RadarFingerprint'
 import { getProducts } from '../../lib/api'
 import type { Spec } from '../../types/spec'
 import { getImageSource } from '../../lib/images'
+import { pickText } from '../../lib/i18n'
+import { useUiPreferences } from '../../context/ui-context'
+import { getFontFamily } from '../../lib/fonts'
 
 const { width: SCREEN_WIDTH } = Dimensions.get('window')
 
@@ -35,7 +38,7 @@ const STATIC_SHOWDOWNS = [
     version: 'DATA V12.4',
     name1: 'iPhone 15 Pro',
     name2: 'S24 Ultra',
-    analyses: '+8,492 ANALYSES',
+    analyses: '+8,492',
     img1: require('../../assets/devices/phone1.png'),
     img2: require('../../assets/devices/phone2.png'),
   },
@@ -44,7 +47,7 @@ const STATIC_SHOWDOWNS = [
     version: 'DATA V12.4',
     name1: 'Pixel 8 Pro',
     name2: 'Xiaomi 14 Ultra',
-    analyses: '+5,120 ANALYSES',
+    analyses: '+5,120',
     img1: require('../../assets/devices/phone3.png'),
     img2: require('../../assets/devices/phone4.png'),
   },
@@ -53,7 +56,7 @@ const STATIC_SHOWDOWNS = [
     version: 'DATA V12.4',
     name1: 'iPhone 15',
     name2: 'Zenfone 10',
-    analyses: '+3,950 ANALYSES',
+    analyses: '+3,950',
     img1: require('../../assets/devices/phone5.png'),
     img2: require('../../assets/devices/phone6.png'),
   },
@@ -61,6 +64,8 @@ const STATIC_SHOWDOWNS = [
 
 export default function MobileHomeScreen() {
   const router = useRouter()
+  const { language, theme } = useUiPreferences()
+  const currentColors = theme === 'dark' ? Colors.dark : Colors.light
   const scrollRef = React.useRef<ScrollView>(null)
   const [scrollPos, setScrollPos] = React.useState(0)
   const [liveShowdowns, setLiveShowdowns] = React.useState<any[]>([])
@@ -70,16 +75,15 @@ export default function MobileHomeScreen() {
     async function loadData() {
       try {
         const { products } = await getProducts(1, 6)
-        // Pair products to create battle cards
         const pairs = []
         for (let i = 0; i < products.length; i += 2) {
           if (products[i+1]) {
             pairs.push({
-              title: i === 0 ? 'Flagship Clash' : i === 2 ? 'Photography War' : 'Performance Battle',
+              title: i === 0 ? pickText(language, { en: 'Flagship Clash', th: 'ศึกเรือธงยอดนิยม' }) : i === 2 ? pickText(language, { en: 'Photography War', th: 'มหาสงครามภาพถ่าย' }) : pickText(language, { en: 'Performance Battle', th: 'สมรภูมิความแรง' }),
               version: `DATA V${new Date().getMonth() + 1}.${new Date().getDate()}`,
               name1: products[i].model,
               name2: products[i+1].model,
-              analyses: `+${Math.floor(Math.random() * 5000) + 2000} ANALYSES`,
+              analyses: `+${Math.floor(Math.random() * 5000) + 2000}`,
               img1: products[i].thumbnail_url,
               img2: products[i+1].thumbnail_url,
             })
@@ -94,29 +98,29 @@ export default function MobileHomeScreen() {
       }
     }
     loadData()
-  }, [])
+  }, [language])
 
   const stats = [
-    { label: 'DEVICES', value: '1,500+' },
-    { label: 'BRANDS', value: '250+' },
-    { label: 'BENCHMARKS', value: '10k+' },
-    { label: 'ACCURACY', value: '100%', subLabel: 'AI ไม่หลอน 100% มั้ง' },
+    { label: pickText(language, { en: 'DEVICES', th: 'อุปกรณ์' }), value: '1,500+' },
+    { label: pickText(language, { en: 'BRANDS', th: 'แบรนด์' }), value: '250+' },
+    { label: pickText(language, { en: 'BENCHMARKS', th: 'เบนช์มาร์ก' }), value: '10k+' },
+    { label: pickText(language, { en: 'ACCURACY', th: 'ความแม่นยำ' }), value: '100%', subLabel: pickText(language, { en: 'No Hallucinations', th: 'AI ไม่หลอน 100%' }) },
   ]
 
   const pillars = [
     {
-      title: 'VERIFIED DATA',
-      desc: 'Cross-referenced with manufacturer whitepapers.',
+      title: pickText(language, { en: 'VERIFIED DATA', th: 'ข้อมูลที่ตรวจสอบแล้ว' }),
+      desc: pickText(language, { en: 'Cross-referenced with manufacturer whitepapers.', th: 'ตรวจสอบย้อนกลับกับข้อมูลผู้ผลิตโดยตรง' }),
       icon: ShieldCheck,
     },
     {
-      title: 'SIDE-BY-SIDE',
-      desc: 'Intuitive UI highlighting hardware disparities.',
+      title: pickText(language, { en: 'SIDE-BY-SIDE', th: 'เปรียบเทียบเคียงข้าง' }),
+      desc: pickText(language, { en: 'Intuitive UI highlighting hardware disparities.', th: 'UI เข้าใจง่าย เน้นจุดต่างของฮาร์ดแวร์' }),
       icon: LayoutGrid,
     },
     {
-      title: 'AI PERFORMANCE',
-      desc: 'Proprietary algorithms synthesizing efficiency ratings.',
+      title: pickText(language, { en: 'AI PERFORMANCE', th: 'ประสิทธิภาพ AI' }),
+      desc: pickText(language, { en: 'Proprietary algorithms synthesizing efficiency ratings.', th: 'อัลกอริทึมเฉพาะทางในการวิเคราะห์คะแนน' }),
       icon: Binary,
     },
   ]
@@ -126,138 +130,113 @@ export default function MobileHomeScreen() {
   const handleScroll = (dir: 'next' | 'prev') => {
     const currentIndex = Math.round(scrollPos / cardFullWidth)
     const nextIndex = dir === 'next' ? currentIndex + 1 : currentIndex - 1
-
     if (nextIndex < 0 || nextIndex >= liveShowdowns.length) return
-
     const nextPos = nextIndex * cardFullWidth
     scrollRef.current?.scrollTo({ x: nextPos, animated: true })
     setScrollPos(nextPos)
   }
 
   return (
-    <SafeAreaView style={styles.container}>
-      <StatusBar barStyle="light-content" />
+    <SafeAreaView style={[styles.container, { backgroundColor: currentColors.background }]}>
+      <StatusBar barStyle={theme === 'dark' ? 'light-content' : 'dark-content'} />
       <ScrollView contentContainerStyle={styles.scrollContent} showsVerticalScrollIndicator={false}>
         {/* Hero Section */}
         <View style={styles.hero}>
-          <View style={styles.heroGlow} />
+          <View style={[styles.heroGlow, { backgroundColor: theme === 'dark' ? 'rgba(20, 104, 255, 0.05)' : 'rgba(255, 255, 255, 1)' }]} />
 
-          {/* Top Badges */}
           <View style={styles.badgeRow}>
-            <View style={[styles.heroBadge, styles.badgeBlue]}>
+            <View style={[styles.heroBadge, styles.badgeBlue, { backgroundColor: theme === 'dark' ? 'rgba(56, 189, 248, 0.1)' : 'rgba(56, 189, 248, 0.05)', borderColor: theme === 'dark' ? 'rgba(56, 189, 248, 0.2)' : 'rgba(56, 189, 248, 0.15)' }]}>
               <Sparkles size={10} color="#38bdf8" />
-              <Text style={styles.badgeText}>ILLUMINATE DECISIONS</Text>
+              <Text style={[styles.badgeText, { color: '#38bdf8', fontFamily: getFontFamily(language, 'black') }]}>{pickText(language, { en: 'ILLUMINATE DECISIONS', th: 'เจาะลึกทุกการตัดสินใจ' })}</Text>
             </View>
-            <View style={[styles.heroBadge, styles.badgeGreen]}>
+            <View style={[styles.heroBadge, styles.badgeGreen, { backgroundColor: theme === 'dark' ? 'rgba(52, 211, 153, 0.1)' : 'rgba(52, 211, 153, 0.05)', borderColor: theme === 'dark' ? 'rgba(52, 211, 153, 0.2)' : 'rgba(52, 211, 153, 0.15)' }]}>
               <View style={styles.greenDot} />
-              <Text style={styles.badgeText}>EMPOWERING CHOICE WITH DATA</Text>
+              <Text style={[styles.badgeText, { color: '#34d399', fontFamily: getFontFamily(language, 'black') }]}>{pickText(language, { en: 'EMPOWERING CHOICE WITH DATA', th: 'ทางเลือกที่ฉลาดด้วยข้อมูล' })}</Text>
             </View>
           </View>
 
-          <Text style={styles.heroTitle}>
-            ILLUMINATE YOUR{'\n'}
-            <Text style={styles.heroTitleAccent}>TECH DECISIONS</Text>
+          <Text style={[styles.heroTitle, { color: currentColors.text, fontFamily: getFontFamily(language, 'black') }]}>
+            {pickText(language, { en: 'ILLUMINATE YOUR', th: 'ยกระดับการ' })}{'\n'}
+            <Text style={[styles.heroTitleAccent, { fontFamily: getFontFamily(language, 'black') }]}>{pickText(language, { en: 'TECH DECISIONS', th: 'เลือกเทคโนโลยี' })}</Text>
           </Text>
 
-          <Text style={styles.heroSubtitle}>
-            Exhaustive smartphone comparisons with AI-powered insights and verified hardware benchmarks. Find your next device with professional-grade clarity.
+          <Text style={[styles.heroSubtitle, { color: currentColors.textSecondary, fontFamily: getFontFamily(language) }]}>
+            {pickText(language, { en: 'Exhaustive smartphone comparisons with AI-powered insights and verified hardware benchmarks. Find your next device with professional-grade clarity.', th: 'เปรียบเทียบสมาร์ทโฟนอย่างละเอียดด้วย AI และข้อมูลฮาร์ดแวร์ที่ตรวจสอบแล้ว ค้นหาอุปกรณ์เครื่องถัดไปของคุณด้วยความชัดเจนระดับมืออาชีพ' })}
           </Text>
 
           <View style={styles.heroActionRow}>
             <TouchableOpacity
-              style={styles.primaryBtn}
+              style={[styles.primaryBtn, { backgroundColor: currentColors.text, shadowColor: currentColors.text }]}
               onPress={() => router.push('/compare')}
               activeOpacity={0.8}
             >
-              <Text style={styles.primaryBtnText}>START COMPARING</Text>
-              <ChevronRight size={14} color="#000" />
+              <Text style={[styles.primaryBtnText, { color: currentColors.background, fontFamily: getFontFamily(language, 'black') }]}>{pickText(language, { en: 'START COMPARING', th: 'เริ่มเปรียบเทียบ' })}</Text>
+              <ChevronRight size={14} color={currentColors.background} />
             </TouchableOpacity>
 
             <TouchableOpacity
-              style={styles.secondaryBtn}
+              style={[styles.secondaryBtn, { borderColor: currentColors.border }]}
               onPress={() => Linking.openURL('https://localhost-v1.vercel.app/')}
               activeOpacity={0.8}
             >
-              <Text style={styles.secondaryBtnText}>VISIT PORTFOLIO</Text>
+              <Text style={[styles.secondaryBtnText, { color: currentColors.text, fontFamily: getFontFamily(language, 'black') }]}>{pickText(language, { en: 'VISIT PORTFOLIO', th: 'เยี่ยมชมพอร์ตโฟลิโอ' })}</Text>
             </TouchableOpacity>
           </View>
         </View>
 
         {/* Stats Row */}
-        <View style={styles.statsRow}>
+        <View style={[styles.statsRow, { borderBottomColor: currentColors.border }]}>
           {stats.map((stat, idx) => (
             <View key={stat.label} style={styles.statItem}>
-              <Text style={styles.statLabel}>{stat.label}</Text>
-              <Text style={styles.statValue}>{stat.value}</Text>
-              {stat.subLabel && <Text style={styles.statSubLabel}>{stat.subLabel}</Text>}
+              <Text style={[styles.statLabel, { color: currentColors.textMuted, fontFamily: getFontFamily(language, 'black') }]}>{stat.label}</Text>
+              <Text style={[styles.statValue, { color: currentColors.text, fontFamily: getFontFamily(language, 'black') }]}>{stat.value}</Text>
+              {stat.subLabel && <Text style={[styles.statSubLabel, { color: Colors.success, fontFamily: getFontFamily(language, 'bold') }]}>{stat.subLabel}</Text>}
             </View>
           ))}
         </View>
 
-        {/* Core Architecture Section (Refined Pattern) */}
+        {/* Core Architecture */}
         <View style={styles.section}>
           <View style={styles.centeredHeader}>
-            <View style={styles.frameworkBadge}>
+            <View style={[styles.frameworkBadge, { backgroundColor: theme === 'dark' ? 'rgba(20, 104, 255, 0.1)' : 'rgba(20, 104, 255, 0.05)', borderColor: theme === 'dark' ? 'rgba(20, 104, 255, 0.2)' : 'rgba(20, 104, 255, 0.1)' }]}>
               <BarChart3 size={10} color={Colors.primary} />
-              <Text style={styles.frameworkText}>CORE ARCHITECTURE</Text>
+              <Text style={[styles.frameworkText, { color: Colors.primary, fontFamily: getFontFamily(language, 'black') }]}>{pickText(language, { en: 'CORE ARCHITECTURE', th: 'สถาปัตยกรรมหลัก' })}</Text>
             </View>
-            <Text style={styles.radarMainTitle}>Precision Engineering</Text>
-            <Text style={styles.radarMainDesc}>
-              Our foundation is built on three essential pillars of data integrity and analytical precision.
+            <Text style={[styles.radarMainTitle, { color: currentColors.text, fontFamily: getFontFamily(language, 'bold') }]}>{pickText(language, { en: 'Precision Engineering', th: 'วิศวกรรมความแม่นยำ' })}</Text>
+            <Text style={[styles.radarMainDesc, { color: currentColors.textSecondary, fontFamily: getFontFamily(language) }]}>
+              {pickText(language, { en: 'Our foundation is built on three essential pillars of data integrity and analytical precision.', th: 'รากฐานของเราสร้างขึ้นบนเสาหลักสามประการของความถูกต้องของข้อมูลและความแม่นยำในการวิเคราะห์' })}
             </Text>
           </View>
 
           <View style={styles.pillarContainer}>
             {pillars.map((pillar) => (
-              <View key={pillar.title} style={styles.pillarCard}>
+              <View key={pillar.title} style={[styles.pillarCard, { backgroundColor: currentColors.surface, borderColor: currentColors.border }]}>
                 <View style={styles.pillarIcon}>
                   <pillar.icon size={24} color={Colors.primary} />
                 </View>
                 <View style={styles.pillarText}>
-                  <Text style={styles.pillarTitle}>{pillar.title}</Text>
-                  <Text style={styles.pillarDesc}>{pillar.desc}</Text>
+                  <Text style={[styles.pillarTitle, { color: currentColors.text, fontFamily: getFontFamily(language, 'black') }]}>{pillar.title}</Text>
+                  <Text style={[styles.pillarDesc, { color: currentColors.textSecondary, fontFamily: getFontFamily(language) }]}>{pillar.desc}</Text>
                 </View>
               </View>
             ))}
           </View>
         </View>
 
-        {/* Radar Section Refined */}
+        {/* Radar Map */}
         <View style={styles.section}>
           <View style={styles.radarLayout}>
-            {/* Left Column: Metadata & Stats */}
             <View style={styles.radarLeft}>
-              <View style={styles.frameworkBadge}>
+              <View style={[styles.frameworkBadge, { backgroundColor: theme === 'dark' ? 'rgba(20, 104, 255, 0.1)' : 'rgba(20, 104, 255, 0.05)', borderColor: theme === 'dark' ? 'rgba(20, 104, 255, 0.2)' : 'rgba(20, 104, 255, 0.1)' }]}>
                 <BarChart3 size={10} color={Colors.primary} />
-                <Text style={styles.frameworkText}>ARCHITECTURE FRAMEWORK</Text>
+                <Text style={[styles.frameworkText, { color: Colors.primary, fontFamily: getFontFamily(language, 'black') }]}>{pickText(language, { en: 'ARCHITECTURE FRAMEWORK', th: 'โครงสร้างสถาปัตยกรรม' })}</Text>
               </View>
-              <Text style={styles.radarMainTitle}>RADAR FINGERPRINT</Text>
-              <Text style={styles.radarMainDesc}>
-                Our advanced engine maps raw hardware specs across six critical performance vectors.
+              <Text style={[styles.radarMainTitle, { color: currentColors.text, fontFamily: getFontFamily(language, 'bold') }]}>{pickText(language, { en: 'RADAR FINGERPRINT', th: 'เรดาร์ลายนิ้วมือ' })}</Text>
+              <Text style={[styles.radarMainDesc, { color: currentColors.textSecondary, fontFamily: getFontFamily(language) }]}>
+                {pickText(language, { en: 'Our advanced engine maps raw hardware specs across six critical performance vectors.', th: 'เครื่องยนต์ขั้นสูงของเราจัดทำแผนภูมังสเปกฮาร์ดแวร์ดิบผ่านหกแกนประสิทธิภาพที่สำคัญ' })}
               </Text>
-
-              <View style={styles.miniStatsGrid}>
-                <View style={styles.miniStat}>
-                  <Text style={styles.miniStatLabel}>CPU DENSITY</Text>
-                  <Text style={styles.miniStatValue}>98TH %</Text>
-                </View>
-                <View style={styles.miniStat}>
-                  <Text style={styles.miniStatLabel}>STORAGE ARCH</Text>
-                  <Text style={styles.miniStatValue}>UFS 4.0</Text>
-                </View>
-                <View style={styles.miniStat}>
-                  <Text style={styles.miniStatLabel}>ENERGY FLUX</Text>
-                  <Text style={styles.miniStatValue}>OPTIMUM</Text>
-                </View>
-                <View style={styles.miniStat}>
-                  <Text style={styles.miniStatLabel}>MEMORY BAND</Text>
-                  <Text style={styles.miniStatValue}>8.5GB/S</Text>
-                </View>
-              </View>
             </View>
-
-            {/* Right Column: Radar Chart (Informational) */}
-            <View style={styles.radarCard}>
+            <View style={[styles.radarCard, { backgroundColor: theme === 'dark' ? 'rgba(255, 255, 255, 0.02)' : 'rgba(0, 0, 0, 0.02)', borderColor: currentColors.border }]}>
               <RadarFingerprint
                 data={{
                   device1: [0.7, 0.85, 0.6, 0.75, 0.65, 0.8],
@@ -270,14 +249,12 @@ export default function MobileHomeScreen() {
           </View>
         </View>
 
-        {/* Trending Showdowns - Web Parity */}
+        {/* Showdowns */}
         <View style={styles.sectionShowdown}>
           <View style={styles.showdownHeader}>
             <View>
-              <Text style={styles.showdownMainTitle}>TRENDING SHOWDOWNS</Text>
-              <Text style={styles.showdownSubtitle}>REAL-TIME DATA ON ACTIVE FLAGSHIP CLASHES</Text>
-            </View>
-            <View style={styles.headerRight}>
+              <Text style={[styles.showdownMainTitle, { color: currentColors.text, fontFamily: getFontFamily(language, 'black') }]}>{pickText(language, { en: 'TRENDING SHOWDOWNS', th: 'การเปรียบเทียบยอดนิยม' })}</Text>
+              <Text style={[styles.showdownSubtitle, { color: theme === 'dark' ? Colors.primaryLight : Colors.primary, fontFamily: getFontFamily(language, 'bold') }]}>{pickText(language, { en: 'REAL-TIME DATA ON ACTIVE FLAGSHIP CLASHES', th: 'ข้อมูลเรียลไทม์ของการปะทะระดับเรือธง' })}</Text>
             </View>
           </View>
 
@@ -289,134 +266,77 @@ export default function MobileHomeScreen() {
               contentContainerStyle={styles.showdownList}
               snapToInterval={cardFullWidth}
               decelerationRate="fast"
-              onScroll={(e) => {
-                setScrollPos(e.nativeEvent.contentOffset.x)
-              }}
-              onMomentumScrollEnd={(e) => {
-                setScrollPos(e.nativeEvent.contentOffset.x)
-              }}
+              onScroll={(e) => setScrollPos(e.nativeEvent.contentOffset.x)}
               scrollEventThrottle={16}
             >
-              {liveShowdowns.map((battle) => (
+              {(liveShowdowns.length > 0 ? liveShowdowns : STATIC_SHOWDOWNS).map((battle, idx) => (
                 <TouchableOpacity 
-                  key={battle.name1 + battle.name2} 
-                  style={styles.showdownCard} 
+                  key={idx} 
+                  style={[styles.showdownCard, { backgroundColor: currentColors.surface, borderColor: currentColors.border }]} 
                   activeOpacity={0.9}
-                  onPress={() => {
-                    router.push({
-                      pathname: '/compare',
-                      params: { m1: battle.name1, m2: battle.name2 }
-                    })
-                  }}
+                  onPress={() => router.push({ pathname: '/compare', params: { m1: battle.name1, m2: battle.name2 } })}
                 >
                   <View style={styles.showdownCardHeader}>
-                    <Text style={styles.cardCatTitle}>{battle.title.toUpperCase()}</Text>
-                    <Text style={styles.cardVersion}>{battle.version}</Text>
+                    <Text style={[styles.cardCatTitle, { color: Colors.primary, fontFamily: getFontFamily(language, 'black') }]}>{battle.title.toUpperCase()}</Text>
+                    <Text style={[styles.cardVersion, { color: currentColors.textMuted, fontFamily: getFontFamily(language) }]}>{battle.version}</Text>
                   </View>
-
                   <View style={styles.battleZone}>
-                    <Image 
-                      source={getImageSource(battle.img1, require('../../assets/devices/phone1.png'))} 
-                      style={styles.deviceImg} 
-                      resizeMode="contain" 
-                    />
-                    <View style={styles.vsBadge}>
-                      <Text style={styles.vsText}>vs</Text>
-                    </View>
-                    <Image 
-                      source={getImageSource(battle.img2, require('../../assets/devices/phone2.png'))} 
-                      style={styles.deviceImg} 
-                      resizeMode="contain" 
-                    />
+                    <Image source={getImageSource(battle.img1, require('../../assets/devices/phone1.png'))} style={styles.deviceImg} resizeMode="contain" />
+                    <View style={[styles.vsBadge, { backgroundColor: currentColors.background, borderColor: currentColors.border }]}><Text style={[styles.vsText, { color: currentColors.text, fontFamily: getFontFamily(language, 'black') }]}>{pickText(language, { en: 'vs', th: 'สู้กับ' })}</Text></View>
+                    <Image source={getImageSource(battle.img2, require('../../assets/devices/phone2.png'))} style={styles.deviceImg} resizeMode="contain" />
                   </View>
-
                   <View style={styles.deviceNamesRow}>
-                    <Text style={styles.deviceName}>{battle.name1.toUpperCase()}</Text>
-                    <Text style={styles.deviceName}>{battle.name2.toUpperCase()}</Text>
+                    <Text style={[styles.deviceName, { color: currentColors.text, fontFamily: getFontFamily(language, 'black') }]}>{battle.name1.toUpperCase()}</Text>
+                    <Text style={[styles.deviceName, { color: currentColors.text, fontFamily: getFontFamily(language, 'black') }]}>{battle.name2.toUpperCase()}</Text>
                   </View>
-
-                  <View style={styles.analysesPill}>
-                    <Text style={styles.pillText}>{battle.analyses}</Text>
+                  <View style={[styles.analysesPill, { backgroundColor: theme === 'dark' ? 'rgba(20, 104, 255, 0.15)' : 'rgba(20, 104, 255, 0.1)' }]}>
+                    <Text style={[styles.pillText, { color: Colors.primary, fontFamily: getFontFamily(language, 'black') }]}>{battle.analyses} {pickText(language, { en: 'ANALYSES', th: 'การวิเคราะห์' })}</Text>
                   </View>
                 </TouchableOpacity>
               ))}
             </ScrollView>
-
-            {/* Floating Arrows - Highly Visible */}
-            <TouchableOpacity
-              style={[styles.floatingArrow, styles.arrowLeft, scrollPos <= 10 && { opacity: 0.4 }]}
-              onPress={() => handleScroll('prev')}
-              disabled={scrollPos <= 10}
-            >
-              <ChevronLeft size={24} color="#fff" />
-            </TouchableOpacity>
-            <TouchableOpacity
-              style={[styles.floatingArrow, styles.arrowRight, scrollPos >= cardFullWidth * (liveShowdowns.length - 1.2) && { opacity: 0.4 }]}
-              onPress={() => handleScroll('next')}
-              disabled={scrollPos >= cardFullWidth * (liveShowdowns.length - 1.2)}
-            >
-              <ChevronRight size={24} color="#fff" />
-            </TouchableOpacity>
           </View>
         </View>
 
-        {/* Internship 2026 Section */}
+        {/* Internship Section */}
         <View style={styles.internshipSection}>
-          <Text style={styles.internshipTitle}>OPEN FOR{'\n'}INTERNSHIP 2026</Text>
-          <Text style={styles.internshipTagline}>READY TO COLLABORATE?</Text>
-
+          <Text style={[styles.internshipTitle, { color: currentColors.text, fontFamily: getFontFamily(language, 'black') }]}>{pickText(language, { en: 'OPEN FOR\nINTERNSHIP 2026', th: 'เปิดรับฝึกงาน' })}</Text>
+          <Text style={[styles.internshipTagline, { color: Colors.primary, fontFamily: getFontFamily(language, 'bold') }]}>{pickText(language, { en: 'READY TO COLLABORATE?', th: 'พร้อมที่จะร่วมงานกันหรือยัง?' })}</Text>
           <View style={styles.proficiencyRow}>
-            <View style={styles.proficiencyBadge}>
+            <View style={[styles.proficiencyBadge, { backgroundColor: theme === 'dark' ? 'rgba(255,255,255,0.03)' : 'rgba(15, 23, 42, 0.03)', borderColor: currentColors.border }]}>
               <CheckCircle2 size={12} color={Colors.primary} />
-              <Text style={styles.proficiencyText}>AVAILABLE FOR REMOTE</Text>
+              <Text style={[styles.proficiencyText, { color: currentColors.textSecondary, fontFamily: getFontFamily(language, 'black') }]}>{pickText(language, { en: 'AVAILABLE FOR REMOTE', th: 'พร้อมทำงานทางไกล' })}</Text>
             </View>
-            <View style={styles.proficiencyBadge}>
+            <View style={[styles.proficiencyBadge, { backgroundColor: theme === 'dark' ? 'rgba(255,255,255,0.03)' : 'rgba(15, 23, 42, 0.03)', borderColor: currentColors.border }]}>
               <CheckCircle2 size={12} color={Colors.primary} />
-              <Text style={styles.proficiencyText}>FULL-STACK PROFICIENCY</Text>
+              <Text style={[styles.proficiencyText, { color: currentColors.textSecondary, fontFamily: getFontFamily(language, 'black') }]}>{pickText(language, { en: 'FULL-STACK PROFICIENCY', th: 'เชี่ยวชาญ Full-stack' })}</Text>
             </View>
           </View>
-
           <View style={styles.contactCardsArea}>
-            <TouchableOpacity
-              style={styles.contactCard}
-              onPress={() => Linking.openURL('mailto:Ch4n1tnan@gmail.com')}
-              activeOpacity={0.7}
-            >
-              <View style={[styles.contactIconCircle, { backgroundColor: 'rgba(56, 189, 248, 0.15)' }]}>
-                <Mail size={20} color="#38bdf8" />
-              </View>
-              <View style={styles.contactInfo}>
-                <Text style={styles.contactLabel}>EMAIL</Text>
-                <Text style={styles.contactValue}>Ch4n1tnan@gmail.com</Text>
-              </View>
-            </TouchableOpacity>
-
-            <TouchableOpacity
-              style={styles.contactCard}
-              onPress={() => Linking.openURL('tel:0613905655')}
-              activeOpacity={0.7}
-            >
-              <View style={[styles.contactIconCircle, { backgroundColor: 'rgba(14, 165, 233, 0.15)' }]}>
-                <Phone size={20} color="#0ea5e9" />
-              </View>
-              <View style={styles.contactInfo}>
-                <Text style={styles.contactLabel}>CALL</Text>
-                <Text style={styles.contactValue}>061-390-5655</Text>
-              </View>
-            </TouchableOpacity>
-           </View>
+            {[
+              { label: 'EMAIL', value: 'Ch4n1tnan@gmail.com', icon: Mail, color: '#38bdf8', url: 'mailto:Ch4n1tnan@gmail.com' },
+              { label: 'CALL', value: '061-390-5655', icon: Phone, color: '#0ea5e9', url: 'tel:0613905655' }
+            ].map((contact, idx) => (
+              <TouchableOpacity key={idx} style={[styles.contactCard, { backgroundColor: currentColors.surface, borderColor: currentColors.border }]} onPress={() => Linking.openURL(contact.url)}>
+                <View style={[styles.contactIconCircle, { backgroundColor: `${contact.color}${theme === 'dark' ? '20' : '15'}` }]}><contact.icon size={20} color={contact.color} /></View>
+                <View style={styles.contactInfo}>
+                  <Text style={[styles.contactLabel, { color: currentColors.textMuted, fontFamily: getFontFamily(language, 'black') }]}>{pickText(language, { en: contact.label, th: contact.label === 'EMAIL' ? 'อีเมล' : 'โทร' })}</Text>
+                  <Text style={[styles.contactValue, { color: currentColors.text, fontFamily: getFontFamily(language, 'bold') }]}>{contact.value}</Text>
+                </View>
+              </TouchableOpacity>
+            ))}
+          </View>
         </View>
 
-        {/* Footer Section */}
+        {/* Footer */}
         <View style={styles.footer}>
-           <Text style={styles.footerLogo}>SPECBOT</Text>
-           <Text style={styles.footerCopyright}>© 2026 SpecBot. All rights reserved.</Text>
-           
-           <View style={styles.footerLinks}>
-              <TouchableOpacity onPress={() => {}}><Text style={styles.footerLink}>PRIVACY</Text></TouchableOpacity>
-              <TouchableOpacity onPress={() => {}}><Text style={styles.footerLink}>TERMS</Text></TouchableOpacity>
-              <TouchableOpacity onPress={() => {}}><Text style={styles.footerLink}>CONTACT</Text></TouchableOpacity>
-           </View>
+          <Text style={[styles.footerLogo, { color: currentColors.text, fontFamily: getFontFamily(language, 'black') }]}>SPECBOT</Text>
+          <Text style={[styles.footerCopyright, { color: currentColors.textMuted, fontFamily: getFontFamily(language) }]}>© 2026 SpecBot. {pickText(language, { en: 'All rights reserved.', th: 'สงวนลิขสิทธิ์ทั้งหมด' })}</Text>
+          <View style={styles.footerLinks}>
+            {['PRIVACY', 'TERMS', 'CONTACT'].map((link) => (
+              <TouchableOpacity key={link}><Text style={[styles.footerLink, { color: currentColors.textMuted, fontFamily: getFontFamily(language, 'bold') }]}>{pickText(language, { en: link, th: link === 'PRIVACY' ? 'ความเป็นส่วนตัว' : link === 'TERMS' ? 'ข้อตกลง' : 'ติดต่อ' })}</Text></TouchableOpacity>
+            ))}
+          </View>
         </View>
       </ScrollView>
     </SafeAreaView>
@@ -426,64 +346,50 @@ export default function MobileHomeScreen() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: Colors.dark.background,
   },
   scrollContent: {
-    paddingBottom: 60,
-  },
-  heroTagline: {
-    fontSize: 10,
-    fontWeight: Fonts.weights.black,
-    color: Colors.primary,
-    letterSpacing: 4,
-    marginBottom: Spacing.md,
+    paddingBottom: 100,
   },
   hero: {
-    paddingTop: 80,
-    paddingBottom: 60,
     paddingHorizontal: Spacing.xl,
-    alignItems: 'center',
-    justifyContent: 'center',
+    paddingTop: 40,
+    paddingBottom: 60,
     position: 'relative',
+    overflow: 'hidden',
   },
   heroGlow: {
     position: 'absolute',
     top: -100,
-    width: SCREEN_WIDTH * 1.5,
-    height: SCREEN_WIDTH * 1.5,
-    backgroundColor: 'rgba(20, 104, 255, 0.05)',
-    borderRadius: SCREEN_WIDTH,
+    right: -100,
+    width: 300,
+    height: 300,
+    borderRadius: 150,
+    opacity: 0.5,
   },
   badgeRow: {
     flexDirection: 'row',
     gap: 12,
-    marginBottom: 40,
-    flexWrap: 'wrap',
-    justifyContent: 'center',
+    marginBottom: 24,
   },
   heroBadge: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 8,
+    gap: 6,
     paddingHorizontal: 12,
     paddingVertical: 6,
     borderRadius: Radius.full,
     borderWidth: 1,
   },
   badgeBlue: {
-    backgroundColor: 'rgba(56, 189, 248, 0.05)',
-    borderColor: 'rgba(56, 189, 248, 0.2)',
+    backgroundColor: 'rgba(56, 189, 248, 0.1)',
   },
   badgeGreen: {
-    backgroundColor: 'rgba(16, 185, 129, 0.05)',
-    borderColor: 'rgba(16, 185, 129, 0.2)',
+    backgroundColor: 'rgba(52, 211, 153, 0.1)',
   },
   badgeText: {
     fontSize: 9,
     fontWeight: Fonts.weights.black,
-    color: '#fff',
-    letterSpacing: 1,
-    opacity: 0.9,
+    letterSpacing: 0.5,
   },
   greenDot: {
     width: 6,
@@ -494,140 +400,122 @@ const styles = StyleSheet.create({
   heroTitle: {
     fontSize: 44,
     fontWeight: Fonts.weights.black,
-    color: '#fff',
     lineHeight: 52,
-    letterSpacing: -1,
-    textAlign: 'center',
+    letterSpacing: -1.5,
+    marginBottom: 24,
   },
   heroTitleAccent: {
-    color: '#38bdf8', // Gradient effect can be emulated or use solid
+    color: Colors.primary,
   },
   heroSubtitle: {
-    fontSize: 14,
-    color: Colors.dark.textSecondary,
-    marginTop: 32,
+    fontSize: 15,
     lineHeight: 24,
-    textAlign: 'center',
-    maxWidth: 320,
-    opacity: 0.8,
+    marginBottom: 40,
+    opacity: 0.9,
   },
   heroActionRow: {
     flexDirection: 'row',
     gap: 16,
-    marginTop: 48,
-    width: '100%',
-    justifyContent: 'center',
   },
   primaryBtn: {
-    backgroundColor: '#fff',
-    paddingVertical: 14,
-    paddingHorizontal: 24,
-    borderRadius: Radius.full,
     flexDirection: 'row',
     alignItems: 'center',
     gap: 8,
-    elevation: 10,
-    shadowColor: '#fff',
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.2,
-    shadowRadius: 10,
+    paddingHorizontal: 24,
+    paddingVertical: 16,
+    borderRadius: Radius.xl,
+    shadowOffset: { width: 0, height: 10 },
+    shadowOpacity: 0.3,
+    shadowRadius: 20,
+    elevation: 5,
   },
   primaryBtnText: {
-    color: '#000',
+    fontSize: 13,
     fontWeight: Fonts.weights.black,
-    fontSize: 11,
     letterSpacing: 1,
   },
   secondaryBtn: {
-    backgroundColor: Colors.primary,
-    paddingVertical: 14,
     paddingHorizontal: 24,
-    borderRadius: Radius.full,
+    paddingVertical: 16,
+    borderRadius: Radius.xl,
     borderWidth: 1,
-    borderColor: 'rgba(255,255,255,0.1)',
     justifyContent: 'center',
-    alignItems: 'center',
   },
   secondaryBtnText: {
-    color: '#fff',
+    fontSize: 13,
     fontWeight: Fonts.weights.black,
-    fontSize: 11,
     letterSpacing: 1,
   },
-
   statsRow: {
     flexDirection: 'row',
-    justifyContent: 'space-between',
-    paddingHorizontal: Spacing.xl,
-    paddingVertical: 40,
-    borderTopWidth: 1,
+    paddingVertical: 32,
+    marginHorizontal: Spacing.xl,
     borderBottomWidth: 1,
-    borderColor: 'rgba(255,255,255,0.05)',
-    flexWrap: 'wrap',
-    gap: 20,
   },
   statItem: {
-    alignItems: 'flex-start',
-    minWidth: 70,
-  },
-  statValue: {
-    fontSize: 22,
-    fontWeight: Fonts.weights.bold,
-    color: '#fff',
+    flex: 1,
+    gap: 4,
   },
   statLabel: {
     fontSize: 8,
     fontWeight: Fonts.weights.black,
-    color: Colors.dark.textMuted,
     letterSpacing: 1,
-    marginBottom: 4,
+  },
+  statValue: {
+    fontSize: 20,
+    fontWeight: Fonts.weights.black,
   },
   statSubLabel: {
     fontSize: 8,
-    color: Colors.primaryLight,
-    marginTop: 4,
-    fontStyle: 'italic',
-    opacity: 0.6,
+    fontWeight: Fonts.weights.bold,
   },
-
   section: {
-    marginTop: 40,
+    marginTop: 80,
     paddingHorizontal: Spacing.xl,
   },
-  sectionHeader: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'flex-end',
-    marginBottom: Spacing.xl,
-  },
-  sectionTagline: {
-    fontSize: 9,
-    fontWeight: Fonts.weights.black,
-    color: Colors.primary,
-    letterSpacing: 3,
-    marginBottom: 4,
-  },
-  sectionTitle: {
-    fontSize: 24,
-    fontWeight: Fonts.weights.bold,
-    color: Colors.dark.text,
-  },
-
   centeredHeader: {
     alignItems: 'center',
-    marginBottom: 10,
+    textAlign: 'center',
+    marginBottom: 48,
+  },
+  frameworkBadge: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8,
+    paddingHorizontal: 12,
+    paddingVertical: 6,
+    borderRadius: 8,
+    marginBottom: 20,
+    borderWidth: 1,
+  },
+  frameworkText: {
+    fontSize: 10,
+    fontWeight: Fonts.weights.black,
+    letterSpacing: 1.5,
+  },
+  radarMainTitle: {
+    fontSize: 32,
+    fontWeight: Fonts.weights.bold,
+    letterSpacing: -0.5,
+    marginBottom: 16,
+    textAlign: 'center',
+  },
+  radarMainDesc: {
+    fontSize: 14,
+    lineHeight: 22,
+    marginBottom: 32,
+    opacity: 0.8,
+    textAlign: 'center',
+    paddingHorizontal: 20,
   },
   pillarContainer: {
-    marginTop: Spacing.xl,
-    gap: Spacing.md,
+    gap: 16,
   },
   pillarCard: {
     flexDirection: 'row',
-    backgroundColor: Colors.dark.card,
     padding: Spacing.lg,
     borderRadius: Radius.xl,
     borderWidth: 1,
-    borderColor: Colors.dark.border,
     alignItems: 'center',
     gap: Spacing.lg,
   },
@@ -645,15 +533,12 @@ const styles = StyleSheet.create({
   pillarTitle: {
     fontSize: 12,
     fontWeight: Fonts.weights.black,
-    color: Colors.dark.text,
     letterSpacing: 1,
   },
   pillarDesc: {
     fontSize: 12,
-    color: Colors.dark.textSecondary,
     marginTop: 2,
   },
-
   radarLayout: {
     gap: 40,
     alignItems: 'center',
@@ -662,146 +547,38 @@ const styles = StyleSheet.create({
     width: '100%',
     alignItems: 'center',
   },
-  frameworkBadge: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 8,
-    backgroundColor: 'rgba(20, 104, 255, 0.1)',
-    paddingHorizontal: 12,
-    paddingVertical: 6,
-    borderRadius: 8,
-    marginBottom: 20,
-    borderWidth: 1,
-    borderColor: 'rgba(20, 104, 255, 0.2)',
-  },
-  frameworkText: {
-    fontSize: 10,
-    fontWeight: Fonts.weights.black,
-    color: Colors.primaryLight,
-    letterSpacing: 1.5,
-  },
-  radarMainTitle: {
-    fontSize: 32,
-    fontWeight: Fonts.weights.bold,
-    color: '#fff',
-    letterSpacing: -0.5,
-    marginBottom: 16,
-    textAlign: 'center',
-  },
-  radarMainDesc: {
-    fontSize: 14,
-    color: Colors.dark.textSecondary,
-    lineHeight: 22,
-    marginBottom: 32,
-    opacity: 0.8,
-    textAlign: 'center',
-    paddingHorizontal: 20,
-  },
-  miniStatsGrid: {
-    flexDirection: 'row',
-    flexWrap: 'wrap',
-    gap: 24,
-    justifyContent: 'center',
-    width: '100%',
-    marginBottom: 8,
-  },
-  miniStat: {
-    width: '42%',
-    alignItems: 'center',
-    backgroundColor: 'rgba(255,255,255,0.03)',
-    padding: 12,
-    borderRadius: Radius.lg,
-    borderWidth: 1,
-    borderColor: 'rgba(255,255,255,0.05)',
-  },
-  miniStatLabel: {
-    fontSize: 8,
-    fontWeight: Fonts.weights.black,
-    color: Colors.dark.textMuted,
-    letterSpacing: 1,
-    marginBottom: 6,
-    textAlign: 'center',
-  },
-  miniStatValue: {
-    fontSize: 15,
-    fontWeight: Fonts.weights.bold,
-    color: '#fff',
-    letterSpacing: 0.5,
-    textAlign: 'center',
-  },
   radarCard: {
-    backgroundColor: 'rgba(255,255,255,0.02)',
     borderRadius: Radius['3xl'],
     padding: Spacing.xl,
     borderWidth: 1,
-    borderColor: 'rgba(255,255,255,0.05)',
     overflow: 'hidden',
     alignItems: 'center',
     justifyContent: 'center',
     minHeight: 320,
+    width: '100%',
   },
-
   sectionShowdown: {
-    marginTop: 60,
+    marginTop: 80,
   },
   showdownHeader: {
     paddingHorizontal: Spacing.xl,
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
     marginBottom: 32,
   },
   showdownMainTitle: {
     fontSize: 28,
     fontWeight: Fonts.weights.black,
-    color: '#fff',
     letterSpacing: 1.5,
   },
   showdownSubtitle: {
     fontSize: 9,
     fontWeight: Fonts.weights.bold,
-    color: Colors.primaryLight,
     letterSpacing: 1,
     marginTop: 4,
     opacity: 0.8,
   },
-  headerRight: {
-    alignItems: 'flex-end',
-    gap: 16,
-  },
-  viewAllBtn: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 4,
-  },
-  viewAllText: {
-    fontSize: 9,
-    fontWeight: Fonts.weights.black,
-    color: Colors.primary,
-    letterSpacing: 0.5,
-  },
   showdownCarouselWrapper: {
     position: 'relative',
     width: '100%',
-  },
-  floatingArrow: {
-    position: 'absolute',
-    top: '40%',
-    width: 48,
-    height: 48,
-    borderRadius: 24,
-    backgroundColor: 'rgba(0,0,0,0.5)',
-    justifyContent: 'center',
-    alignItems: 'center',
-    borderWidth: 1,
-    borderColor: 'rgba(255,255,255,0.15)',
-    zIndex: 999,
-  },
-  arrowLeft: {
-    left: 8,
-  },
-  arrowRight: {
-    right: 8,
   },
   showdownList: {
     paddingLeft: Spacing.xl,
@@ -809,12 +586,10 @@ const styles = StyleSheet.create({
   },
   showdownCard: {
     width: SCREEN_WIDTH * 0.85,
-    backgroundColor: '#0d1117',
     borderRadius: Radius['3xl'],
     padding: 24,
     marginRight: 16,
     borderWidth: 1,
-    borderColor: 'rgba(255,255,255,0.05)',
     position: 'relative',
     height: 340,
   },
@@ -827,13 +602,11 @@ const styles = StyleSheet.create({
   cardCatTitle: {
     fontSize: 10,
     fontWeight: Fonts.weights.black,
-    color: Colors.primary,
     letterSpacing: 1,
   },
   cardVersion: {
     fontSize: 9,
     fontWeight: Fonts.weights.bold,
-    color: Colors.dark.textMuted,
     opacity: 0.6,
   },
   battleZone: {
@@ -870,7 +643,6 @@ const styles = StyleSheet.create({
   deviceName: {
     fontSize: 10,
     fontWeight: Fonts.weights.black,
-    color: '#fff',
     letterSpacing: 0.5,
     width: 100,
     textAlign: 'center',
@@ -879,31 +651,24 @@ const styles = StyleSheet.create({
     position: 'absolute',
     bottom: 24,
     alignSelf: 'center',
-    backgroundColor: 'rgba(20, 104, 255, 0.15)',
     paddingHorizontal: 16,
     paddingVertical: 8,
     borderRadius: 20,
     borderWidth: 1,
-    borderColor: 'rgba(20, 104, 255, 0.3)',
   },
   pillText: {
     fontSize: 9,
     fontWeight: Fonts.weights.black,
-    color: Colors.primaryLight,
     letterSpacing: 1,
   },
-
-  // Internship Section Styles
   internshipSection: {
     marginTop: 80,
-    marginBottom: 0,
     paddingHorizontal: Spacing.xl,
     alignItems: 'center',
   },
   internshipTitle: {
     fontSize: 40,
     fontWeight: Fonts.weights.black,
-    color: '#fff',
     lineHeight: 46,
     letterSpacing: -1,
     textAlign: 'center',
@@ -911,7 +676,6 @@ const styles = StyleSheet.create({
   internshipTagline: {
     fontSize: 16,
     fontWeight: Fonts.weights.bold,
-    color: Colors.primary,
     marginTop: 12,
     letterSpacing: 0.5,
     textAlign: 'center',
@@ -927,17 +691,14 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     gap: 6,
-    backgroundColor: 'rgba(255,255,255,0.03)',
     paddingHorizontal: 12,
     paddingVertical: 6,
     borderRadius: 8,
     borderWidth: 1,
-    borderColor: 'rgba(255,255,255,0.05)',
   },
   proficiencyText: {
     fontSize: 8,
     fontWeight: Fonts.weights.black,
-    color: Colors.dark.textSecondary,
     letterSpacing: 0.5,
   },
   contactCardsArea: {
@@ -949,11 +710,9 @@ const styles = StyleSheet.create({
     width: '100%',
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: '#0d1117',
     padding: 24,
     borderRadius: 40,
     borderWidth: 1,
-    borderColor: 'rgba(255,255,255,0.08)',
     gap: 20,
   },
   contactIconCircle: {
@@ -969,36 +728,30 @@ const styles = StyleSheet.create({
   contactLabel: {
     fontSize: 9,
     fontWeight: Fonts.weights.black,
-    color: Colors.dark.textMuted,
     letterSpacing: 1,
     marginBottom: 4,
   },
   contactValue: {
     fontSize: 14,
     fontWeight: Fonts.weights.bold,
-    color: '#fff',
     letterSpacing: 0.2,
   },
-
   footer: {
     marginTop: 80,
     paddingBottom: 40,
     alignItems: 'center',
     gap: 16,
     borderTopWidth: 1,
-    borderColor: 'rgba(255,255,255,0.05)',
     paddingTop: 40,
     marginHorizontal: Spacing.xl,
   },
   footerLogo: {
     fontSize: 14,
     fontWeight: Fonts.weights.black,
-    color: '#fff',
     letterSpacing: 6,
   },
   footerCopyright: {
     fontSize: 11,
-    color: Colors.dark.textMuted,
     opacity: 0.7,
   },
   footerLinks: {
@@ -1009,7 +762,6 @@ const styles = StyleSheet.create({
   footerLink: {
     fontSize: 11,
     fontWeight: Fonts.weights.bold,
-    color: Colors.dark.textMuted,
     letterSpacing: 1,
     opacity: 0.6,
   },

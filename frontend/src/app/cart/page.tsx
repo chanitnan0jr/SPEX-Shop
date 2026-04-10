@@ -6,11 +6,14 @@ import { ShoppingCart, Trash2, ArrowRight, CreditCard, ChevronLeft, Package, Tra
 import Link from 'next/link'
 import { useCart } from '@/lib/cart-context'
 import { createOrderApi } from '@/lib/api'
+import { useUiPreferences } from '@/lib/ui-context'
+import { pickText } from '@/lib/i18n'
 
 export default function CartPage() {
   const { cart, removeItem, itemCount } = useCart()
   const [isCheckingOut, setIsCheckingOut] = React.useState(false)
   const [ordered, setOrdered] = React.useState(false)
+  const { language } = useUiPreferences()
 
   const total = cart.reduce((sum, item) => sum + (item.product.price_thb || 0) * item.quantity, 0)
 
@@ -77,11 +80,15 @@ export default function CartPage() {
             <Package className="h-12 w-12 text-black" />
           </div>
           <div className="space-y-2">
-            <h1 className="text-4xl font-black uppercase tracking-tighter neon-text-cyan">Order Dispatched</h1>
-            <p className="text-slate-400 font-bold uppercase tracking-[0.2em] text-xs">Awaiting hardware translocation</p>
+            <h1 className="text-4xl font-black uppercase tracking-tighter neon-text-cyan">
+              {pickText(language, { en: 'Order Dispatched', th: 'ส่งคำสั่งซื้อสำเร็จ' })}
+            </h1>
+            <p className="text-slate-400 font-bold uppercase tracking-[0.2em] text-xs">
+              {pickText(language, { en: 'Awaiting hardware translocation', th: 'กำลังรอการเคลื่อนย้ายอุปกรณ์' })}
+            </p>
           </div>
           <Link href="/shop" className="block w-full py-4 rounded-2xl cyber-button">
-            BACK TO INVENTORY
+            {pickText(language, { en: 'BACK TO INVENTORY', th: 'กลับไปยังคลังสินค้า' })}
           </Link>
         </motion.div>
       </div>
@@ -100,13 +107,16 @@ export default function CartPage() {
           <div className="space-y-4 px-4">
             <div className="flex items-center gap-2 text-[11px] font-black uppercase tracking-[0.3em] text-sky-500">
               <ShoppingCart className="h-3.5 w-3.5" />
-              Checkout System
+              {pickText(language, { en: 'Checkout System', th: 'ระบบชำระเงิน' })}
             </div>
             <h1 className="text-6xl font-black uppercase tracking-tighter text-slate-950 dark:text-white leading-none">
-              Your Cart
+              {pickText(language, { en: 'Your Cart', th: 'รถเข็นของคุณ' })}
             </h1>
             <p className="text-sm font-medium text-slate-500 dark:text-slate-400 max-w-2xl">
-              {itemCount} {itemCount === 1 ? 'device' : 'devices'} selected for review. Manage your inventory and finalize your order within our secure transaction gateway.
+              {pickText(language, {
+                en: `${itemCount} ${itemCount === 1 ? 'device' : 'devices'} selected for review. Manage your inventory and finalize your order within our secure transaction gateway.`,
+                th: `เลือกไว้ ${itemCount} อุปกรณ์สำหรับตรวจสอบ จัดการคลังสินค้าและสรุปคำสั่งซื้อของคุณผ่านช่องทางธุรกรรมที่ปลอดภัยของเรา`
+              })}
             </p>
           </div>
         </motion.header>
@@ -161,12 +171,14 @@ export default function CartPage() {
               ) : (
                 <div className="py-40 text-center border border-dashed border-white/10 rounded-[3rem]">
                   <Package className="h-16 w-16 text-slate-800 mx-auto mb-6" />
-                  <p className="text-slate-500 font-bold uppercase tracking-[0.3em]">Manifest is currently empty</p>
+                  <p className="text-slate-500 font-bold uppercase tracking-[0.3em]">
+                    {pickText(language, { en: 'Manifest is currently empty', th: 'รายการสินค้าในรถเข็นว่างเปล่า' })}
+                  </p>
                   <Link 
                     href="/shop" 
                     className="mt-8 group relative inline-flex items-center gap-4 rounded-3xl bg-slate-950 dark:bg-white px-10 py-5 text-sm font-black uppercase tracking-widest text-white dark:text-slate-950 shadow-2xl shadow-sky-500/20 transition-all hover:-translate-y-1 active:translate-y-0"
                   >
-                    BROWSE INVENTORY
+                    {pickText(language, { en: 'BROWSE INVENTORY', th: 'เรียกดูสินค้าในคลัง' })}
                     <ArrowRight className="h-5 w-5 transition-transform group-hover:translate-x-1" />
                   </Link>
                 </div>
@@ -177,22 +189,26 @@ export default function CartPage() {
           {/* Cart Summary Header */}
           <motion.div variants={summaryVariants} className="lg:col-span-1">
             <div className="rounded-3xl border border-slate-200/50 bg-white/50 dark:border-white/5 dark:bg-white/5 backdrop-blur-xl shadow-xl p-8 space-y-8 sticky top-32">
-              <h2 className="text-2xl font-black uppercase tracking-tighter">Budget Summary</h2>
+              <h2 className="text-2xl font-black uppercase tracking-tighter">
+                {pickText(language, { en: 'Budget Summary', th: 'สรุปรายการงบประมาณ' })}
+              </h2>
               
               <div className="space-y-4 border-b border-white/5 pb-8">
                 <div className="flex justify-between text-xs font-bold uppercase tracking-widest text-slate-400">
-                  <span>Subtotal</span>
+                  <span>{pickText(language, { en: 'Subtotal', th: 'ราคารวมสินค้า' })}</span>
                   <span className="text-white">฿{total.toLocaleString()}</span>
                 </div>
                 <div className="flex justify-between text-xs font-bold uppercase tracking-widest text-slate-400">
-                  <span>Transport</span>
-                  <span className="text-cyan-500">FREE_ALLOCATION</span>
+                  <span>{pickText(language, { en: 'Transport', th: 'การขนส่ง' })}</span>
+                  <span className="text-cyan-500">{pickText(language, { en: 'FREE_ALLOCATION', th: 'ไม่มีค่าใช้จ่าย' })}</span>
                 </div>
               </div>
 
               <div className="flex justify-between items-end">
                 <div>
-                  <p className="text-[10px] font-black uppercase tracking-widest text-slate-500">Total Credits</p>
+                  <p className="text-[10px] font-black uppercase tracking-widest text-slate-500">
+                    {pickText(language, { en: 'Total Credits', th: 'เครดิตรวมทั้งหมด' })}
+                  </p>
                   <p className="text-3xl font-black neon-text-cyan">฿{total.toLocaleString()}</p>
                 </div>
               </div>
@@ -210,7 +226,7 @@ export default function CartPage() {
                   <motion.div animate={{ rotate: 360 }} transition={{ repeat: Infinity, duration: 1 }} className="h-5 w-5 border-2 border-white/30 border-t-white rounded-full" />
                 ) : (
                   <>
-                    AUTHORIZE
+                    {pickText(language, { en: 'AUTHORIZE', th: 'ยืนยันรายการ' })}
                     <ArrowRight className="h-5 w-5" />
                   </>
                 )}
@@ -218,7 +234,9 @@ export default function CartPage() {
 
               <div className="flex items-center justify-center gap-4 grayscale opacity-30">
                 <CreditCard className="h-5 w-5" />
-                <span className="text-[8px] font-bold tracking-[0.5em] uppercase">Secured Neural Gateway</span>
+                <span className="text-[8px] font-bold tracking-[0.5em] uppercase">
+                  {pickText(language, { en: 'Secured Neural Gateway', th: 'เกตเวย์ประสาทที่ปลอดภัย' })}
+                </span>
               </div>
             </div>
           </motion.div>

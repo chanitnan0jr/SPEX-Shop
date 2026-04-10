@@ -5,6 +5,8 @@ import { motion, AnimatePresence } from 'framer-motion'
 import { Search, Filter, ShoppingCart, BarChart2, Zap, Cpu, MousePointer2 } from 'lucide-react'
 import { getProductsApi, type Spec } from '@/lib/api'
 import { useCart } from '@/lib/cart-context'
+import { useUiPreferences } from '@/lib/ui-context'
+import { pickText } from '@/lib/i18n'
 
 const containerVariants = {
   hidden: { opacity: 0 },
@@ -39,6 +41,7 @@ export default function ShopPage() {
   const [search, setSearch] = useState('')
   const [brand, setBrand] = useState('All')
   const { addItem } = useCart()
+  const { language } = useUiPreferences()
 
   useEffect(() => {
     const fetchProducts = async () => {
@@ -73,13 +76,16 @@ export default function ShopPage() {
           <div className="space-y-4">
             <div className="flex items-center gap-2 text-[11px] font-black uppercase tracking-[0.3em] text-sky-500">
               <ShoppingBag className="h-3.5 w-3.5" />
-              Smartphone Market
+              {pickText(language, { en: 'Smartphone Market', th: 'ตลาดสมาร์ทโฟน' })}
             </div>
             <h1 className="text-6xl font-black uppercase tracking-tighter text-slate-950 dark:text-white leading-none">
-              Shop
+              {pickText(language, { en: 'Shop', th: 'ร้านค้า' })}
             </h1>
             <p className="text-sm font-medium text-slate-500 dark:text-slate-400 max-w-2xl">
-              Browse and explore the latest authenticated smartphone specifications and availability with precision benchmarking.
+              {pickText(language, { 
+                en: 'Browse and explore the latest authenticated smartphone specifications and availability with precision benchmarking.', 
+                th: 'เรียกดูและสำรวจข้อมูลจำเพาะสมาร์ทโฟนล่าสุดและความพร้อมจำหน่ายด้วยการทดสอบประสิทธิภาพที่แม่นยำ' 
+              })}
             </p>
           </div>
           
@@ -87,8 +93,8 @@ export default function ShopPage() {
             <div className="relative group">
               <Search className="absolute left-4 top-1/2 -translate-y-1/2 h-4 w-4 text-cyan-500 group-focus-within:neon-text-cyan transition-all" />
               <input 
-                type="text"
-                placeholder="SEARCH ARCHIVE..."
+                type="text" 
+                placeholder={pickText(language, { en: 'SEARCH ARCHIVE...', th: 'ค้นหาในคลัง...' })}
                 value={search}
                 onChange={(e) => setSearch(e.target.value)}
                 className="w-full sm:w-80 bg-muted/50 border border-white/10 dark:border-white/5 rounded-2xl py-4 pl-12 pr-6 text-xs font-black tracking-widest focus:outline-none focus:border-cyan-500/50 transition-all"
@@ -118,7 +124,9 @@ export default function ShopPage() {
         {loading ? (
           <div className="flex flex-col items-center justify-center py-40 space-y-4">
             <Cpu className="h-12 w-12 text-cyan-500 animate-spin" />
-            <p className="text-[10px] font-black uppercase tracking-[0.4em] text-cyan-500 animate-pulse">Syncing Inventory...</p>
+            <p className="text-[10px] font-black uppercase tracking-[0.4em] text-cyan-500 animate-pulse">
+              {pickText(language, { en: 'Syncing Inventory...', th: 'กำลังซิงค์ข้อมูลสินค้า...' })}
+            </p>
           </div>
         ) : (
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
@@ -137,7 +145,9 @@ export default function ShopPage() {
         {!loading && filtered.length === 0 && (
           <div className="text-center py-40 bg-slate-900/20 rounded-[3rem] border border-dashed border-white/10">
             <Search className="h-12 w-12 text-slate-700 mx-auto mb-4" />
-            <p className="text-slate-500 font-bold uppercase tracking-widest">No matching hardware found in sector</p>
+            <p className="text-slate-500 font-bold uppercase tracking-widest">
+              {pickText(language, { en: 'No matching hardware found in sector', th: 'ไม่พบอุปกรณ์ที่ตรงกันในเซกเตอร์นี้' })}
+            </p>
           </div>
         )}
       </motion.div>
@@ -146,6 +156,7 @@ export default function ShopPage() {
 }
 
 function ProductCard({ product, onAdd }: { product: Spec, onAdd: () => void }) {
+  const { language } = useUiPreferences()
   return (
     <motion.div
       variants={itemVariants}
@@ -196,9 +207,13 @@ function ProductCard({ product, onAdd }: { product: Spec, onAdd: () => void }) {
       {/* Price & Action */}
       <div className="flex items-center justify-between pt-4 border-t border-white/5">
         <div>
-          <p className="text-[9px] font-black text-slate-500 uppercase tracking-widest">Exchange Value</p>
+          <p className="text-[9px] font-black text-slate-500 uppercase tracking-widest">
+            {pickText(language, { en: 'Exchange Value', th: 'มูลค่าแลกเปลี่ยน' })}
+          </p>
           <p className="text-xl font-black neon-text-magenta">
-            {product.price_thb ? `฿${product.price_thb.toLocaleString()}` : 'CONTACT_HQ'}
+            {product.price_thb 
+              ? `฿${product.price_thb.toLocaleString()}` 
+              : pickText(language, { en: 'CONTACT_HQ', th: 'ติดต่อสำนักงานใหญ่' })}
           </p>
         </div>
         

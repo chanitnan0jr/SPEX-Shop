@@ -5,6 +5,8 @@ import { Colors, Fonts, Spacing, Radius } from '../lib/constants'
 import type { Spec } from '../types/spec'
 import { getImageSource } from '../lib/images'
 import { useCart } from '../hooks/useCart'
+import { useUiPreferences } from '../context/ui-context'
+import { getFontFamily } from '../lib/fonts'
 
 type ProductCardProps = {
   product: Spec
@@ -15,6 +17,8 @@ export const ProductCard = memo(function ProductCard({
   product,
   onPress,
 }: ProductCardProps) {
+  const { language, theme } = useUiPreferences()
+  const currentColors = theme === 'dark' ? Colors.dark : Colors.light
   const { addToCart } = useCart()
   const brandDisplay = product.brand.toUpperCase()
 
@@ -36,17 +40,17 @@ export const ProductCard = memo(function ProductCard({
       onPress={onPress}
       activeOpacity={0.8}
     >
-      <View style={styles.card}>
+      <View style={[styles.card, { backgroundColor: currentColors.surface, borderColor: currentColors.border }]}>
         {/* Header: Brand & Model */}
         <View style={styles.header}>
-          <Text style={styles.brandText}>{brandDisplay}</Text>
-          <Text style={styles.modelName} numberOfLines={1}>{product.model}</Text>
+          <Text style={[styles.brandText, { color: currentColors.textMuted, fontFamily: getFontFamily(language, 'black') }]}>{brandDisplay}</Text>
+          <Text style={[styles.modelName, { color: currentColors.text, fontFamily: getFontFamily(language, 'bold') }]} numberOfLines={1}>{product.model}</Text>
         </View>
 
         {/* Product Image Stage */}
         <View style={styles.imageStage}>
           {/* Subtle Radial Gradient Glow Effect */}
-          <View style={styles.glow} />
+          <View style={[styles.glow, { backgroundColor: theme === 'dark' ? 'rgba(255,255,255,0.03)' : 'rgba(0,0,0,0.02)' }]} />
           
           <Image
             source={getImageSource(product.thumbnail_url, null)}
@@ -54,19 +58,19 @@ export const ProductCard = memo(function ProductCard({
             resizeMode="contain"
           />
           {!product.thumbnail_url && (
-            <View style={[styles.placeholderContainer, { position: 'absolute' }]}>
-              <Smartphone size={32} color={Colors.dark.textMuted} strokeWidth={1} />
+            <View style={[styles.placeholderContainer, { position: 'absolute', backgroundColor: theme === 'dark' ? 'rgba(255,255,255,0.05)' : 'rgba(0,0,0,0.03)' }]}>
+              <Smartphone size={32} color={currentColors.textMuted} strokeWidth={1} />
             </View>
           )}
         </View>
 
         {/* Pricing & Footer */}
-        <View style={styles.footer}>
+        <View style={[styles.footer, { borderTopColor: currentColors.border }]}>
            <View style={styles.priceContainer}>
-             <Text style={styles.priceThb}>
+             <Text style={[styles.priceThb, { color: currentColors.text, fontFamily: getFontFamily(language, 'black') }]}>
                {product.price_thb ? `฿${product.price_thb.toLocaleString('th-TH')}` : '—'}
              </Text>
-             <Text style={styles.estimatedLabel}>ESTIMATED PRICE</Text>
+             <Text style={[styles.estimatedLabel, { color: currentColors.textMuted, fontFamily: getFontFamily(language, 'black') }]}>ESTIMATED PRICE</Text>
            </View>
 
            <TouchableOpacity 
@@ -74,7 +78,7 @@ export const ProductCard = memo(function ProductCard({
              onPress={handleAddToCart}
              activeOpacity={0.7}
            >
-             <ShoppingCart size={18} color={Colors.dark.background} />
+             <ShoppingCart size={18} color="#fff" />
            </TouchableOpacity>
         </View>
       </View>
@@ -91,7 +95,6 @@ const styles = StyleSheet.create({
     backgroundColor: Colors.dark.card,
     borderRadius: Radius['2xl'],
     borderWidth: 1,
-    borderColor: Colors.dark.border,
     padding: Spacing.lg,
     alignItems: 'center',
     ...Platform.select({
@@ -114,14 +117,12 @@ const styles = StyleSheet.create({
   brandText: {
     fontSize: 10,
     fontWeight: Fonts.weights.black,
-    color: Colors.dark.textMuted,
     letterSpacing: 2,
     marginBottom: 2,
   },
   modelName: {
     fontSize: Fonts.sizes.md,
     fontWeight: Fonts.weights.bold,
-    color: Colors.dark.text,
     textAlign: 'center',
   },
   imageStage: {
@@ -176,13 +177,11 @@ const styles = StyleSheet.create({
   priceThb: {
     fontSize: 18,
     fontWeight: Fonts.weights.black,
-    color: Colors.dark.text,
     letterSpacing: -0.5,
   },
   estimatedLabel: {
     fontSize: 8,
     fontWeight: Fonts.weights.black,
-    color: Colors.dark.textMuted,
     letterSpacing: 1,
     marginTop: 1,
   },

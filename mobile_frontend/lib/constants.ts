@@ -43,6 +43,10 @@ export const Colors = {
 
 export const Fonts = {
   // We'll use system fonts provided by React Native and Expo, which map well to Inter/San Francisco
+  families: {
+    english: 'System', // Maps to San Francisco on iOS, Roboto on Android
+    thai: 'Prompt-Regular',  // Modern Thai typeface matching the website
+  },
   sizes: {
     xs: 11,
     sm: 13,
@@ -55,10 +59,10 @@ export const Fonts = {
   },
   weights: {
     regular: '400' as const,
-    medium: '500' as const,
-    semibold: '600' as const,
-    bold: '700' as const,
-    black: '900' as const,
+    medium: '400' as const, // Reduced from 500
+    semibold: '500' as const, // Reduced from 600
+    bold: '600' as const, // Reduced from 700
+    black: '700' as const, // Reduced from 900
   },
 } as const
 

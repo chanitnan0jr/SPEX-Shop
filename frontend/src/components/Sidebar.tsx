@@ -1,5 +1,6 @@
 'use client'
 
+import { useEffect, useState } from 'react'
 import Link from 'next/link'
 import { Home, Settings, HelpCircle, LucideIcon, ChevronLeft, PanelLeftClose, PanelLeft, FileText, ShoppingBag, ShoppingCart, User, LayoutGrid, BarChart3, X } from 'lucide-react'
 import { motion, AnimatePresence } from 'framer-motion'
@@ -7,6 +8,7 @@ import { usePathname } from 'next/navigation'
 import { useUiPreferences } from '@/lib/ui-context'
 import { useCart } from '@/lib/cart-context'
 import { VisitorCount } from './VisitorCount'
+import { pickText } from '@/lib/i18n'
 
 interface NavItemProps {
   icon: LucideIcon
@@ -17,7 +19,7 @@ interface NavItemProps {
 }
 
 function NavItem({ icon: Icon, label, href, isActive, isCollapsed }: NavItemProps) {
-  const { itemCount } = (label === 'Cart') ? useCart() : { itemCount: 0 }
+  const { itemCount } = (href === '/cart') ? useCart() : { itemCount: 0 }
 
   return (
     <Link href={href}>
@@ -40,7 +42,7 @@ function NavItem({ icon: Icon, label, href, isActive, isCollapsed }: NavItemProp
         )}
         <div className="relative">
           <Icon className={`h-4.5 w-4.5 transition-colors ${isActive ? 'text-sky-400' : 'group-hover:text-slate-300'}`} />
-          {label === 'Cart' && itemCount > 0 && (
+          {href === '/cart' && itemCount > 0 && (
             <motion.span
               initial={{ scale: 0 }}
               animate={{ scale: 1 }}
@@ -66,21 +68,29 @@ function NavItem({ icon: Icon, label, href, isActive, isCollapsed }: NavItemProp
 
 export function Sidebar() {
   const pathname = usePathname()
+  const { language } = useUiPreferences()
   const { isSidebarCollapsed, setIsSidebarCollapsed, isMobileMenuOpen, setIsMobileMenuOpen } = useUiPreferences()
+  const [mounted, setMounted] = useState(false)
+
+  useEffect(() => {
+    setMounted(true)
+  }, [])
 
   const navItems = [
-    { icon: Home, label: 'Home', href: '/' },
-    { icon: BarChart3, label: 'Compare', href: '/compare' },
-    { icon: ShoppingBag, label: 'Shop', href: '/shop' },
-    { icon: ShoppingCart, label: 'Cart', href: '/cart' },
-    { icon: FileText, label: 'Document', href: '/doc' },
+    { icon: Home, label: pickText(language, { en: 'Home', th: 'หน้าหลัก' }), href: '/' },
+    { icon: BarChart3, label: pickText(language, { en: 'Compare', th: 'เปรียบเทียบ' }), href: '/compare' },
+    { icon: ShoppingBag, label: pickText(language, { en: 'Shop', th: 'สโตร์' }), href: '/shop' },
+    { icon: ShoppingCart, label: pickText(language, { en: 'Cart', th: 'ตะกร้าสินค้า' }), href: '/cart' },
+    { icon: FileText, label: pickText(language, { en: 'Document', th: 'เอกสาร' }), href: '/doc' },
   ]
 
   const bottomItems = [
-    { icon: User, label: 'User', href: '/profile' },
-    { icon: Settings, label: 'Settings', href: '/settings' },
-    { icon: HelpCircle, label: 'Support', href: '/support' },
+    { icon: User, label: pickText(language, { en: 'User', th: 'ผู้ใช้งาน' }), href: '/profile' },
+    { icon: Settings, label: pickText(language, { en: 'Settings', th: 'ตั้งค่า' }), href: '/settings' },
+    { icon: HelpCircle, label: pickText(language, { en: 'Support', th: 'ช่วยเหลือ' }), href: '/support' },
   ]
+
+  const isDesktop = mounted && typeof window !== 'undefined' && window.innerWidth >= 1280
 
   return (
     <>
@@ -97,13 +107,13 @@ export function Sidebar() {
       </AnimatePresence>
 
       <AnimatePresence initial={false}>
-        {(isMobileMenuOpen || typeof window !== 'undefined' && window.innerWidth >= 1280) && (
+        {(isMobileMenuOpen || isDesktop) && (
           <motion.aside
-            initial={typeof window !== 'undefined' && window.innerWidth < 1280 ? { x: -300 } : false}
+            initial={isMobileMenuOpen ? { x: -300 } : false}
             animate={{ 
               x: 0,
               width: isSidebarCollapsed ? 80 : 256,
-              left: (typeof window !== 'undefined' && window.innerWidth < 1280 && !isMobileMenuOpen) ? -300 : 0
+              left: 0
             }}
             exit={{ x: -300 }}
             transition={{ 
@@ -130,7 +140,7 @@ export function Sidebar() {
             <div className="flex-1 space-y-2 overflow-hidden">
               <div className={`px-4 mb-8 transition-opacity duration-300 ${isSidebarCollapsed ? 'opacity-0' : 'opacity-100'}`}>
                 <p className="text-[11px] font-black uppercase tracking-[0.25em] text-slate-500 opacity-80 whitespace-nowrap">
-                  Explorer Menu
+                  {pickText(language, { en: 'Explorer Menu', th: 'เมนูหลัก' })}
                 </p>
               </div>
               {navItems.map((item) => (

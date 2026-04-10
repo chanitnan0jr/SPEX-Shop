@@ -14,9 +14,14 @@ import { useQuery } from '@tanstack/react-query'
 import { Package, ChevronRight, Clock } from 'lucide-react-native'
 import { Colors, Fonts, Radius, Spacing } from '../../lib/constants'
 import { getOrders, IOrder } from '../../lib/api'
+import { pickText } from '../../lib/i18n'
+import { useUiPreferences } from '../../context/ui-context'
+import { getFontFamily } from '../../lib/fonts'
 
 export default function OrdersScreen() {
   const router = useRouter()
+  const { language, theme } = useUiPreferences()
+  const currentColors = theme === 'dark' ? Colors.dark : Colors.light
 
   const { data: orders, isLoading, isError, refetch } = useQuery({
     queryKey: ['orders'],
@@ -29,45 +34,45 @@ export default function OrdersScreen() {
       case 'shipped': return Colors.primaryLight
       case 'delivered': return Colors.primary
       case 'cancelled': return '#ef4444'
-      default: return Colors.dark.textMuted
+      default: return currentColors.textMuted
     }
   }
 
   const renderOrderItem = ({ item }: { item: IOrder }) => (
     <TouchableOpacity
-      style={styles.orderCard}
+      style={[styles.orderCard, { backgroundColor: currentColors.surface, borderColor: currentColors.border }]}
       onPress={() => router.push({ pathname: '/orders/[id]', params: { id: item._id } })}
       activeOpacity={0.7}
     >
       <View style={styles.cardHeader}>
         <View style={styles.orderInfo}>
-          <Text style={styles.orderId}>ORDER #{item._id.slice(-6).toUpperCase()}</Text>
+          <Text style={[styles.orderId, { color: currentColors.text, fontFamily: getFontFamily(language, 'black') }]}>ORDER #{item._id.slice(-6).toUpperCase()}</Text>
           <View style={styles.dateRow}>
             <Clock size={12} color={Colors.dark.textMuted} />
-            <Text style={styles.dateText}>
+            <Text style={[styles.dateText, { color: currentColors.textMuted, fontFamily: getFontFamily(language) }]}>
               {new Date(item.createdAt).toLocaleDateString()}
             </Text>
           </View>
         </View>
-        <View style={[styles.statusBadge, { backgroundColor: `${getStatusColor(item.status)}20` }]}>
-          <Text style={[styles.statusText, { color: getStatusColor(item.status) }]}>
+        <View style={[styles.statusBadge, { backgroundColor: `${getStatusColor(item.status)}15` }]}>
+          <Text style={[styles.statusText, { color: getStatusColor(item.status), fontFamily: getFontFamily(language, 'black') }]}>
             {item.status.toUpperCase()}
           </Text>
         </View>
       </View>
 
       <View style={styles.cardBody}>
-        <Text style={styles.itemSummary} numberOfLines={1}>
+        <Text style={[styles.itemSummary, { color: currentColors.textSecondary, fontFamily: getFontFamily(language, 'bold') }]} numberOfLines={1}>
           {item.items.map(i => `${i.brand} ${i.model}`).join(', ')}
         </Text>
         <View style={styles.priceRow}>
-          <Text style={styles.totalLabel}>Total Amount</Text>
-          <Text style={styles.totalPrice}>฿{item.totalAmount.toLocaleString()}</Text>
+          <Text style={[styles.totalLabel, { color: currentColors.textMuted, fontFamily: getFontFamily(language) }]}>Total Amount</Text>
+          <Text style={[styles.totalPrice, { color: currentColors.text, fontFamily: getFontFamily(language, 'black') }]}>฿{item.totalAmount.toLocaleString()}</Text>
         </View>
       </View>
 
       <View style={styles.cardFooter}>
-        <Text style={styles.viewDetail}>View Details</Text>
+        <Text style={[styles.viewDetail, { color: Colors.primary, fontFamily: getFontFamily(language, 'bold') }]}>View Details</Text>
         <ChevronRight size={16} color={Colors.primary} />
       </View>
     </TouchableOpacity>
@@ -82,11 +87,11 @@ export default function OrdersScreen() {
   }
 
   return (
-    <SafeAreaView style={styles.container}>
-      <StatusBar barStyle="light-content" />
+    <SafeAreaView style={[styles.container, { backgroundColor: currentColors.background }]}>
+      <StatusBar barStyle={theme === 'dark' ? 'light-content' : 'dark-content'} />
       <View style={styles.header}>
-        <Text style={styles.title}>Orders</Text>
-        <Text style={styles.subtitle}>Your purchase history</Text>
+        <Text style={[styles.title, { color: currentColors.text, fontFamily: getFontFamily(language, 'black') }]}>{pickText(language, { en: 'Orders', th: 'คำสั่งซื้อ' })}</Text>
+        <Text style={[styles.subtitle, { color: currentColors.textMuted, fontFamily: getFontFamily(language) }]}>{pickText(language, { en: 'Your purchase history', th: 'ประวัติการสั่งซื้อของคุณ' })}</Text>
       </View>
 
       <FlatList
@@ -96,10 +101,10 @@ export default function OrdersScreen() {
         contentContainerStyle={styles.listContent}
         ListEmptyComponent={() => (
           <View style={styles.emptyContainer}>
-            <Package size={64} color={Colors.dark.surfaceStrong} />
-            <Text style={styles.emptyTitle}>No orders yet</Text>
-            <Text style={styles.emptySubtitle}>
-              When you buy a phone, it will appear here.
+            <Package size={64} color={currentColors.border} />
+            <Text style={[styles.emptyTitle, { color: currentColors.text, fontFamily: getFontFamily(language, 'black') }]}>{pickText(language, { en: 'No orders yet', th: 'ยังไม่มีคำสั่งซื้อ' })}</Text>
+            <Text style={[styles.emptySubtitle, { color: currentColors.textMuted, fontFamily: getFontFamily(language) }]}>
+              {pickText(language, { en: 'When you buy a phone, it will appear here.', th: 'เมื่อคุณซื้อโทรศัพท์ รายการจะปรากฏที่นี่' })}
             </Text>
           </View>
         )}
@@ -113,13 +118,11 @@ export default function OrdersScreen() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: Colors.dark.background,
   },
   centered: {
     flex: 1,
     justifyContent: 'center',
     alignItems: 'center',
-    backgroundColor: Colors.dark.background,
   },
   header: {
     paddingHorizontal: Spacing.xl,
@@ -129,12 +132,10 @@ const styles = StyleSheet.create({
   title: {
     fontSize: 32,
     fontWeight: Fonts.weights.bold,
-    color: Colors.dark.text,
     letterSpacing: -1,
   },
   subtitle: {
     fontSize: 14,
-    color: Colors.dark.textMuted,
     marginTop: 4,
   },
   listContent: {
@@ -142,12 +143,10 @@ const styles = StyleSheet.create({
     paddingBottom: 40,
   },
   orderCard: {
-    backgroundColor: Colors.dark.surface,
     borderRadius: Radius.xl,
     padding: Spacing.lg,
     marginBottom: Spacing.md,
     borderWidth: 1,
-    borderColor: Colors.dark.border,
   },
   cardHeader: {
     flexDirection: 'row',
@@ -161,7 +160,6 @@ const styles = StyleSheet.create({
   orderId: {
     fontSize: 14,
     fontWeight: Fonts.weights.black,
-    color: Colors.dark.text,
     letterSpacing: 1,
   },
   dateRow: {
@@ -204,7 +202,6 @@ const styles = StyleSheet.create({
   totalPrice: {
     fontSize: 18,
     fontWeight: Fonts.weights.bold,
-    color: Colors.dark.text,
   },
   cardFooter: {
     flexDirection: 'row',
@@ -212,7 +209,6 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     paddingTop: Spacing.md,
     borderTopWidth: 1,
-    borderTopColor: Colors.dark.surfaceStrong,
     gap: 4,
   },
   viewDetail: {
@@ -228,7 +224,6 @@ const styles = StyleSheet.create({
   emptyTitle: {
     fontSize: 18,
     fontWeight: Fonts.weights.bold,
-    color: Colors.dark.text,
     marginTop: Spacing.lg,
   },
   emptySubtitle: {

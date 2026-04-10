@@ -14,6 +14,7 @@ import {
   ActivityIndicator,
   Platform,
   KeyboardAvoidingView,
+  StatusBar,
 } from 'react-native'
 import { useRouter, useLocalSearchParams } from 'expo-router'
 import { 
@@ -40,30 +41,42 @@ import { getProducts, compareSpecs } from '../../lib/api'
 import { RadarFingerprint } from '../../components/RadarFingerprint'
 import { useCart } from '../../hooks/useCart'
 import type { Spec } from '../../types/spec'
+import { pickText } from '../../lib/i18n'
+import { useUiPreferences } from '../../context/ui-context'
+import { getFontFamily } from '../../lib/fonts'
 
 const { width: SCREEN_WIDTH } = Dimensions.get('window')
 
 // Optimized List Item for Device Selection
-const DeviceListItem = memo(({ item, onSelect }: { item: Spec; onSelect: (d: Spec) => void }) => (
-  <TouchableOpacity 
-    style={styles.productItem}
-    onPress={() => onSelect(item)}
-  >
-    <Image 
-      source={item.thumbnail_url ? { uri: item.thumbnail_url } : require('../../assets/devices/phone1.png')} 
-      style={styles.productThumb} 
-    />
-    <View style={styles.productInfo}>
-      <Text style={styles.productBrand}>{item.brand.toUpperCase()}</Text>
-      <Text style={styles.productModel}>{item.model}</Text>
-    </View>
-    <ChevronRight size={18} color={Colors.dark.textMuted} />
-  </TouchableOpacity>
-))
+const DeviceListItem = memo(({ item, onSelect }: { item: Spec; onSelect: (d: Spec) => void }) => {
+  const { language, theme } = useUiPreferences()
+  const currentColors = theme === 'dark' ? Colors.dark : Colors.light
+
+  return (
+    <TouchableOpacity 
+      style={[styles.productItem, { borderBottomColor: currentColors.border }]}
+      onPress={() => onSelect(item)}
+    >
+      <Image 
+        source={item.thumbnail_url ? { uri: item.thumbnail_url } : require('../../assets/devices/phone1.png')} 
+        style={styles.productThumb} 
+      />
+      <View style={styles.productInfo}>
+        <Text style={[styles.productBrand, { color: Colors.primary, fontFamily: getFontFamily(language, 'black') }]}>{item.brand.toUpperCase()}</Text>
+        <Text style={[styles.productModel, { color: currentColors.text, fontFamily: getFontFamily(language, 'bold') }]}>{item.model}</Text>
+      </View>
+      <ChevronRight size={18} color={currentColors.textMuted} />
+    </TouchableOpacity>
+  )
+})
 
 export default function CompareTabScreen() {
   const router = useRouter()
   const { addToCart } = useCart()
+  const { language, theme } = useUiPreferences()
+  const currentColors = theme === 'dark' ? Colors.dark : Colors.light
+  const fontFamily = language === 'th' ? Fonts.families.thai : Fonts.families.english
+
   // Fixed 4-slot system to prevent shifting
   const [selectedDevices, setSelectedDevices] = useState<(Spec | null)[]>([null, null, null, null])
   const [activeSlotIndex, setActiveSlotIndex] = useState<number | null>(null)
@@ -79,64 +92,64 @@ export default function CompareTabScreen() {
   // Table Structure Definition - Simplified for robustness
   const TABLE_STRUCTURE = [
     {
-      title: 'PERFORMANCE',
+      title: pickText(language, { en: 'PERFORMANCE', th: 'ประสิทธิภาพ' }),
       icon: <Cpu size={14} color={Colors.primary} />,
       features: [
-        { label: 'OS', keys: ['Operating system', 'OS', 'Platform OS'] },
-        { label: 'CHIPSET', keys: ['Chipset', 'Processor'] },
-        { label: 'GPU', keys: ['GPU', 'Graphics'] },
-        { label: 'RAM', keys: ['RAM', 'Memory'] },
-        { label: 'STORAGE', keys: ['Storage', 'Internal Storage', 'ROM'] },
+        { label: pickText(language, { en: 'OS', th: 'ระบบปฏิบัติการ' }), keys: ['Operating system', 'OS', 'Platform OS'] },
+        { label: pickText(language, { en: 'CHIPSET', th: 'ชิปเซ็ต' }), keys: ['Chipset', 'Processor'] },
+        { label: pickText(language, { en: 'GPU', th: 'กราฟิก' }), keys: ['GPU', 'Graphics'] },
+        { label: pickText(language, { en: 'RAM', th: 'หน่วยความจำ' }), keys: ['RAM', 'Memory'] },
+        { label: pickText(language, { en: 'STORAGE', th: 'ความจุ' }), keys: ['Storage', 'Internal Storage', 'ROM'] },
       ]
     },
     {
-      title: 'DISPLAY',
+      title: pickText(language, { en: 'DISPLAY', th: 'หน้าจอ' }),
       icon: <Monitor size={14} color={Colors.primary} />,
       features: [
-        { label: 'SIZE', keys: ['Screen size', 'Size', 'Display Size'] },
-        { label: 'RESOLUTION', keys: ['Resolution', 'Screen resolution', 'Display Resolution', 'Pixel density', 'Res'] },
-        { label: 'REFRESH', keys: ['Refresh rate', 'Hz', 'Display Refresh', 'Refresh'] },
+        { label: pickText(language, { en: 'SIZE', th: 'ขนาด' }), keys: ['Screen size', 'Size', 'Display Size'] },
+        { label: pickText(language, { en: 'RESOLUTION', th: 'ความละเอียด' }), keys: ['Resolution', 'Screen resolution', 'Display Resolution', 'Pixel density', 'Res'] },
+        { label: pickText(language, { en: 'REFRESH', th: 'รีเฟรชเรท' }), keys: ['Refresh rate', 'Hz', 'Display Refresh', 'Refresh'] },
       ]
     },
     {
-      title: 'CAMERA',
+      title: pickText(language, { en: 'CAMERA', th: 'กล้อง' }),
       icon: <Camera size={14} color={Colors.primary} />,
       features: [
-        { label: 'MAIN', keys: ['Rear camera', 'Main Camera', 'Triple', 'Dual'] },
-        { label: 'SELFIE', keys: ['Front camera', 'Selfie camera', 'Single'] },
+        { label: pickText(language, { en: 'MAIN', th: 'กล้องหลัง' }), keys: ['Rear camera', 'Main Camera', 'Triple', 'Dual'] },
+        { label: pickText(language, { en: 'SELFIE', th: 'กล้องหน้า' }), keys: ['Front camera', 'Selfie camera', 'Single'] },
       ]
     },
     {
-      title: 'POWER',
+      title: pickText(language, { en: 'POWER', th: 'พลังงาน' }),
       icon: <Battery size={14} color={Colors.primary} />,
       features: [
-        { label: 'CAPACITY', keys: ['Battery capacity', 'Capacity', 'Battery'] },
-        { label: 'CHARGING', keys: ['Fast charging', 'Charging', 'Speed'] },
+        { label: pickText(language, { en: 'CAPACITY', th: 'ความจุแบตเตอรี่' }), keys: ['Battery capacity', 'Capacity', 'Battery'] },
+        { label: pickText(language, { en: 'CHARGING', th: 'การชาร์จ' }), keys: ['Fast charging', 'Charging', 'Speed'] },
       ]
     },
     {
-      title: 'CONNECTIVITY',
+      title: pickText(language, { en: 'CONNECTIVITY', th: 'การเชื่อมต่อ' }),
       icon: <Wifi size={14} color={Colors.primary} />,
       features: [
-        { label: 'NETWORK', keys: ['Network', 'Technology', 'Bands'] },
-        { label: 'USB', keys: ['USB', 'USB Type', 'Port'] },
-        { label: 'BLUETOOTH', keys: ['Bluetooth', 'BT'] },
+        { label: pickText(language, { en: 'NETWORK', th: 'เครือข่าย' }), keys: ['Network', 'Technology', 'Bands'] },
+        { label: pickText(language, { en: 'USB', th: 'ยูเอสบี' }), keys: ['USB', 'USB Type', 'Port'] },
+        { label: pickText(language, { en: 'BLUETOOTH', th: 'บลูทูธ' }), keys: ['Bluetooth', 'BT'] },
       ]
     },
     {
-      title: 'BUILD',
+      title: pickText(language, { en: 'BUILD', th: 'การออกแบบ' }),
       icon: <Layers size={14} color={Colors.primary} />,
       features: [
-        { label: 'WEIGHT', keys: ['Weight', 'Body Weight'] },
-        { label: 'THICKNESS', keys: ['Thickness', 'Dimensions'] },
-        { label: 'MATERIAL', keys: ['Body material', 'Build'] },
+        { label: pickText(language, { en: 'WEIGHT', th: 'น้ำหนัก' }), keys: ['Weight', 'Body Weight'] },
+        { label: pickText(language, { en: 'THICKNESS', th: 'ความบาง' }), keys: ['Thickness', 'Dimensions'] },
+        { label: pickText(language, { en: 'MATERIAL', th: 'วัสดุ' }), keys: ['Body material', 'Build'] },
       ]
     },
     {
-      title: 'PRICING',
+      title: pickText(language, { en: 'PRICING', th: 'ราคา' }),
       icon: <Tag size={14} color={Colors.primary} />,
       features: [
-        { label: 'PRICE', keys: ['price_thb', 'Price'] },
+        { label: pickText(language, { en: 'PRICE', th: 'ราคา' }), keys: ['price_thb', 'Price'] },
       ]
     }
   ]
@@ -345,12 +358,12 @@ export default function CompareTabScreen() {
         {/* Sticky-like Header */}
         <View style={styles.tableHeader}>
            <View style={styles.featureColumnHeader}>
-              <Text style={styles.headerLabel}>SPECIFICATION</Text>
+              <Text style={[styles.headerLabel, { color: currentColors.textMuted, fontFamily: getFontFamily(language, 'black') }]}>SPECIFICATION</Text>
            </View>
            {comparisonData.map((d, i) => (
              <View key={d?._id || `empty-header-${i}`} style={styles.valueColumnHeader}>
                {d ? (
-                 <Text numberOfLines={2} style={styles.headerValue}>{d.model}</Text>
+                 <Text numberOfLines={2} style={[styles.headerValue, { color: '#fff', fontFamily: getFontFamily(language, 'bold') }]}>{d.model}</Text>
                ) : (
                  <Text style={[styles.headerValue, { opacity: 0.2 }]}>-</Text>
                )}
@@ -363,20 +376,20 @@ export default function CompareTabScreen() {
           <View key={section.title}>
             <View style={styles.categoryRow}>
                <View style={styles.categoryIcon}>{section.icon}</View>
-               <Text style={styles.categoryTitle}>{section.title}</Text>
+               <Text style={[styles.categoryTitle, { color: '#fff', fontFamily: getFontFamily(language, 'black') }]}>{section.title}</Text>
             </View>
             
             {section.features.map((f, fIdx) => (
-              <View key={f.label} style={styles.tableRow}>
-                <View style={styles.featureNameCol}>
-                   <Text style={styles.featureName}>{f.label}</Text>
+              <View key={f.label} style={[styles.tableRow, { borderBottomColor: currentColors.border }]}>
+                <View style={[styles.featureNameCol, { backgroundColor: theme === 'dark' ? 'rgba(255,255,255,0.01)' : 'rgba(0,0,0,0.01)' }]}>
+                   <Text style={[styles.featureName, { color: currentColors.textSecondary, fontFamily: getFontFamily(language, 'bold') }]}>{f.label}</Text>
                 </View>
                 {comparisonData.map((d, dIdx) => {
                   const val = getSpecValue(d, f.keys, f.label)
                   
                   return (
-                    <View key={d?._id ? d._id + f.label : `empty-${dIdx}-${f.label}`} style={styles.valueCol}>
-                       <Text numberOfLines={4} style={styles.featureValue}>{val}</Text>
+                    <View key={d?._id ? d._id + f.label : `empty-${dIdx}-${f.label}`} style={[styles.valueCol, { borderLeftColor: currentColors.border }]}>
+                       <Text numberOfLines={4} style={[styles.featureValue, { color: currentColors.text, fontFamily: getFontFamily(language) }]}>{val}</Text>
                     </View>
                   )
                 })}
@@ -389,12 +402,13 @@ export default function CompareTabScreen() {
   }
 
   return (
-    <SafeAreaView style={styles.container}>
+    <SafeAreaView style={[styles.container, { backgroundColor: currentColors.background }]}>
+      <StatusBar barStyle={theme === 'dark' ? 'light-content' : 'dark-content'} />
       <ScrollView contentContainerStyle={styles.scrollContent} showsVerticalScrollIndicator={false}>
         <View style={styles.header}>
-          <Text style={styles.tagline}>{'>_ SYSTEM ALPHA'}</Text>
-          <Text style={styles.title}>COMPARE DEVICES</Text>
-          <Text style={styles.subtitle}>HIGH-FIDELITY HARDWARE ANALYTICS</Text>
+          <Text style={[styles.tagline, { color: Colors.primary, fontFamily: getFontFamily(language, 'black') }]}>{'>_ SYSTEM ALPHA'}</Text>
+          <Text style={[styles.title, { color: currentColors.text, fontFamily: getFontFamily(language, 'black') }]}>COMPARE DEVICES</Text>
+          <Text style={[styles.subtitle, { color: currentColors.textMuted, fontFamily: getFontFamily(language, 'bold') }]}>HIGH-FIDELITY HARDWARE ANALYTICS</Text>
         </View>
 
         {/* Device Selection Slots */}
@@ -404,7 +418,7 @@ export default function CompareTabScreen() {
             return (
               <TouchableOpacity
                 key={index}
-                style={[styles.slot, !device && styles.slotEmpty]}
+                style={[styles.slot, { backgroundColor: currentColors.surface, borderColor: currentColors.border }, !device && styles.slotEmpty]}
                 activeOpacity={0.7}
                 onPress={() => {
                   setActiveSlotIndex(index)
@@ -414,8 +428,8 @@ export default function CompareTabScreen() {
                 {device ? (
                   <View style={styles.deviceInfo}>
                     <Image source={device.thumbnail_url ? { uri: device.thumbnail_url } : require('../../assets/devices/phone1.png')} style={styles.deviceImage} />
-                    <Text style={styles.deviceName} numberOfLines={1}>{device.model}</Text>
-                    <Text style={styles.devicePrice}>
+                    <Text style={[styles.deviceName, { color: currentColors.text, fontFamily: getFontFamily(language, 'bold') }]} numberOfLines={1}>{device.model}</Text>
+                    <Text style={[styles.devicePrice, { color: Colors.primary, fontFamily: getFontFamily(language, 'black') }]}>
                       {device.price_thb ? `฿${device.price_thb.toLocaleString('th-TH')}` : '—'}
                     </Text>
                     
@@ -448,7 +462,7 @@ export default function CompareTabScreen() {
                 ) : (
                   <View style={styles.addPlaceholder}>
                     <Plus size={16} color={Colors.primary} />
-                    <Text style={styles.addText}>ADD</Text>
+                    <Text style={[styles.addText, { color: currentColors.textMuted, fontFamily: getFontFamily(language, 'black') }]}>ADD</Text>
                   </View>
                 )}
               </TouchableOpacity>
@@ -470,7 +484,7 @@ export default function CompareTabScreen() {
         {/* Target Action Bar */}
         <View style={styles.actionArea}>
            <TouchableOpacity 
-             style={styles.searchBar} 
+             style={[styles.searchBar, { backgroundColor: theme === 'dark' ? 'rgba(255,255,255,0.05)' : 'rgba(0,0,0,0.05)', borderColor: currentColors.border }]} 
              onPress={() => {
                 const firstEmpty = selectedDevices.findIndex(d => d === null)
                 setActiveSlotIndex(firstEmpty !== -1 ? firstEmpty : 0)
@@ -478,7 +492,7 @@ export default function CompareTabScreen() {
              }}
            >
               <Search size={16} color={Colors.primary} />
-              <Text style={styles.searchText}>
+              <Text style={[styles.searchText, { color: currentColors.text, fontFamily: getFontFamily(language, 'black') }]}>
                 {isLoading ? 'SYNCING DATABASE...' : 'SELECT DEVICE FOR COMPARISON'}
               </Text>
            </TouchableOpacity>
@@ -486,8 +500,8 @@ export default function CompareTabScreen() {
 
         {/* Radar Chart Section */}
         <View style={styles.radarSection}>
-          <Text style={styles.sectionTitle}>PERFORMANCE FINGERPRINT</Text>
-          <View style={styles.radarCard}>
+          <Text style={[styles.sectionTitle, { color: currentColors.text, fontFamily: getFontFamily(language, 'black') }]}>PERFORMANCE FINGERPRINT</Text>
+          <View style={[styles.radarCard, { backgroundColor: currentColors.surface, borderColor: currentColors.border }]}>
             <View style={styles.radarGlow} />
             {radarChartData ? (
                <RadarFingerprint data={radarChartData} />
@@ -502,10 +516,12 @@ export default function CompareTabScreen() {
 
         {/* Comparison Table Section */}
         <View style={styles.tableSection}>
-           <Text style={styles.sectionTitle}>TECHNICAL DATASHEET</Text>
+           <Text style={[styles.sectionTitle, { color: currentColors.text, fontFamily: getFontFamily(language, 'black') }]}>TECHNICAL DATASHEET</Text>
            {renderComparisonTable() || (
              <View style={styles.tableCardEmpty}>
-                <Text style={styles.emptyText}>Select devices to initialize hardware comparison</Text>
+                <Text style={[styles.emptyText, { color: currentColors.textMuted, fontFamily: getFontFamily(language) }]}>
+                  {pickText(language, { en: 'Select devices to initialize hardware comparison', th: 'เลือกอุปกรณ์เพื่อเริ่มต้นการเปรียบเทียบฮาร์ดแวร์' })}
+                </Text>
              </View>
            )}
         </View>
@@ -522,25 +538,28 @@ export default function CompareTabScreen() {
              style={styles.modalOverlay}
              behavior={Platform.OS === 'ios' ? 'padding' : undefined}
           >
-             <View style={styles.modalContent}>
-               <View style={styles.modalHeaderUnderline}>
-                 <Text style={styles.modalTitle}>
-                   {activeSlotIndex !== null ? `SLOT ${activeSlotIndex + 1}` : 'SELECT DEVICE'}
-                 </Text>
-                 <TouchableOpacity onPress={() => {
-                   setIsModalVisible(false)
-                   setActiveSlotIndex(null)
-                 }}>
-                   <X size={24} color="#fff" />
-                 </TouchableOpacity>
-               </View>
+              <View style={[styles.modalContent, { backgroundColor: currentColors.surface, borderColor: currentColors.border }]}>
+                <View style={[styles.modalHeaderUnderline, { borderBottomColor: currentColors.border }]}>
+                  <Text style={[styles.modalTitle, { color: currentColors.text, fontFamily: getFontFamily(language, 'black') }]}>
+                    {activeSlotIndex !== null ? `SLOT ${activeSlotIndex + 1}` : pickText(language, { en: 'SELECT DEVICE', th: 'เลือกอุปกรณ์' })}
+                  </Text>
+                  <TouchableOpacity 
+                    onPress={() => {
+                      setIsModalVisible(false)
+                      setActiveSlotIndex(null)
+                    }}
+                    style={styles.modalCloseBtn}
+                  >
+                    <X size={24} color={currentColors.text} />
+                  </TouchableOpacity>
+                </View>
 
-              <View style={styles.modalSearch}>
+              <View style={[styles.modalSearch, { backgroundColor: theme === 'dark' ? 'rgba(255,255,255,0.05)' : 'rgba(0,0,0,0.05)', borderColor: currentColors.border }]}>
                 <Search size={18} color={Colors.primary} />
                 <TextInput
-                  style={styles.modalInput}
+                  style={[styles.modalInput, { color: currentColors.text, fontFamily: getFontFamily(language) }]}
                   placeholder="Filter models..."
-                  placeholderTextColor={Colors.dark.textMuted}
+                  placeholderTextColor={currentColors.textMuted}
                   value={searchQuery}
                   onChangeText={setSearchQuery}
                   autoFocus
@@ -575,7 +594,7 @@ const styles = StyleSheet.create({
     backgroundColor: Colors.dark.background,
   },
   scrollContent: {
-    paddingBottom: 140,
+    paddingBottom: 110,
   },
   header: {
     padding: Spacing.xl,
@@ -591,7 +610,6 @@ const styles = StyleSheet.create({
   title: {
     fontSize: 26,
     fontWeight: Fonts.weights.black,
-    color: '#fff',
     letterSpacing: -0.5,
   },
   subtitle: {
@@ -638,7 +656,6 @@ const styles = StyleSheet.create({
   deviceName: {
     fontSize: 8,
     fontWeight: Fonts.weights.bold,
-    color: '#fff',
     textAlign: 'center',
     marginBottom: 2,
   },
@@ -871,7 +888,6 @@ const styles = StyleSheet.create({
   },
   featureValue: {
     fontSize: 9,
-    color: '#fff',
     lineHeight: 14,
   },
   modalOverlay: {
@@ -898,7 +914,10 @@ const styles = StyleSheet.create({
   modalTitle: {
     fontSize: 16,
     fontWeight: Fonts.weights.black,
-    color: '#fff',
+  },
+  modalCloseBtn: {
+    padding: 8,
+    marginRight: -12,
   },
   modalSearch: {
     flexDirection: 'row',
@@ -911,7 +930,6 @@ const styles = StyleSheet.create({
   },
   modalInput: {
     flex: 1,
-    color: '#fff',
     fontSize: 14,
   },
   modalLoading: {
@@ -949,6 +967,5 @@ const styles = StyleSheet.create({
   productModel: {
     fontSize: 14,
     fontWeight: Fonts.weights.bold,
-    color: '#fff',
   },
 })

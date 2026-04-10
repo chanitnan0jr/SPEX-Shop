@@ -16,10 +16,14 @@ import { useQuery } from '@tanstack/react-query'
 import { ChevronLeft, MapPin, Package, Calendar, Tag } from 'lucide-react-native'
 import { Colors, Fonts, Radius, Spacing } from '../../lib/constants'
 import { getOrderById, IOrder } from '../../lib/api'
+import { useUiPreferences } from '../../context/ui-context'
+import { getFontFamily } from '../../lib/fonts'
 
 export default function OrderDetailScreen() {
   const { id } = useLocalSearchParams<{ id: string }>()
   const router = useRouter()
+  const { language, theme } = useUiPreferences()
+  const currentColors = theme === 'dark' ? Colors.dark : Colors.light
 
   const { data: order, isLoading, isError } = useQuery({
     queryKey: ['order', id],
@@ -37,8 +41,8 @@ export default function OrderDetailScreen() {
 
   if (isError || !order) {
     return (
-      <View style={styles.centered}>
-        <Text style={{ color: '#fff' }}>Order not found</Text>
+      <View style={[styles.centered, { backgroundColor: currentColors.background }]}>
+        <Text style={{ color: currentColors.text, fontFamily: getFontFamily(language) }}>Order not found</Text>
         <TouchableOpacity onPress={() => router.back()}>
           <Text style={{ color: Colors.primary, marginTop: 20 }}>Go Back</Text>
         </TouchableOpacity>
@@ -47,22 +51,22 @@ export default function OrderDetailScreen() {
   }
 
   return (
-    <SafeAreaView style={styles.container}>
-      <StatusBar barStyle="light-content" />
-      <View style={styles.header}>
+    <SafeAreaView style={[styles.container, { backgroundColor: currentColors.background }]}>
+      <StatusBar barStyle={theme === 'dark' ? 'light-content' : 'dark-content'} />
+      <View style={[styles.header, { borderBottomColor: currentColors.border }]}>
         <TouchableOpacity onPress={() => router.back()} style={styles.backBtn}>
-          <ChevronLeft size={24} color={Colors.dark.text} />
+          <ChevronLeft size={24} color={currentColors.text} />
         </TouchableOpacity>
-        <Text style={styles.title}>Order Receipt</Text>
+        <Text style={[styles.title, { color: currentColors.text, fontFamily: getFontFamily(language, 'black') }]}>Order Receipt</Text>
         <View style={{ width: 40 }} />
       </View>
 
       <ScrollView contentContainerStyle={styles.scrollContent} showsVerticalScrollIndicator={false}>
         {/* Status Hub */}
-        <View style={styles.statusCard}>
+        <View style={[styles.statusCard, { backgroundColor: currentColors.surface, borderColor: Colors.primary }]}>
           <View style={styles.statusInfo}>
-             <Text style={styles.statusLabel}>Current Status</Text>
-             <Text style={styles.statusValue}>{order.status.toUpperCase()}</Text>
+             <Text style={[styles.statusLabel, { color: currentColors.textMuted, fontFamily: getFontFamily(language, 'black') }]}>Current Status</Text>
+             <Text style={[styles.statusValue, { fontFamily: getFontFamily(language, 'black') }]}>{order.status.toUpperCase()}</Text>
           </View>
           <View style={styles.statusBadge}>
             <Package size={32} color={Colors.primary} />
@@ -71,11 +75,11 @@ export default function OrderDetailScreen() {
 
         {/* Info Grid */}
         <View style={styles.infoGrid}>
-          <View style={styles.infoItem}>
-            <Calendar size={16} color={Colors.dark.textMuted} />
+          <View style={[styles.infoItem, { backgroundColor: currentColors.surface, borderColor: currentColors.border }]}>
+            <Calendar size={16} color={currentColors.textMuted} />
             <View>
-              <Text style={styles.infoLabel}>DATE</Text>
-              <Text style={styles.infoValue}>
+              <Text style={[styles.infoLabel, { color: currentColors.textMuted, fontFamily: getFontFamily(language, 'black') }]}>DATE</Text>
+              <Text style={[styles.infoValue, { color: currentColors.text, fontFamily: getFontFamily(language, 'bold') }]}>
                 {new Date(order.createdAt).toLocaleDateString(undefined, {
                   year: 'numeric',
                   month: 'long',
@@ -85,11 +89,11 @@ export default function OrderDetailScreen() {
             </View>
           </View>
 
-          <View style={styles.infoItem}>
-            <Tag size={16} color={Colors.dark.textMuted} />
+          <View style={[styles.infoItem, { backgroundColor: currentColors.surface, borderColor: currentColors.border }]}>
+            <Tag size={16} color={currentColors.textMuted} />
             <View>
-              <Text style={styles.infoLabel}>ORDER ID</Text>
-              <Text style={styles.infoValue}>#{order._id.slice(-8).toUpperCase()}</Text>
+              <Text style={[styles.infoLabel, { color: currentColors.textMuted, fontFamily: getFontFamily(language, 'black') }]}>ORDER ID</Text>
+              <Text style={[styles.infoValue, { color: currentColors.text, fontFamily: getFontFamily(language, 'bold') }]}>#{order._id.slice(-8).toUpperCase()}</Text>
             </View>
           </View>
         </View>
@@ -100,13 +104,13 @@ export default function OrderDetailScreen() {
             <MapPin size={18} color={Colors.primary} />
             <Text style={styles.sectionTitle}>SHIPPING TO</Text>
           </View>
-          <View style={styles.addressBox}>
-            <Text style={styles.addressName}>{order.shippingAddress.name}</Text>
-            <Text style={styles.addressText}>{order.shippingAddress.address}</Text>
-            <Text style={styles.addressText}>
+          <View style={[styles.addressBox, { backgroundColor: currentColors.surface, borderColor: currentColors.border }]}>
+            <Text style={[styles.addressName, { color: currentColors.text, fontFamily: getFontFamily(language, 'bold') }]}>{order.shippingAddress.name}</Text>
+            <Text style={[styles.addressText, { color: currentColors.textSecondary, fontFamily: getFontFamily(language) }]}>{order.shippingAddress.address}</Text>
+            <Text style={[styles.addressText, { color: currentColors.textSecondary, fontFamily: getFontFamily(language) }]}>
               {order.shippingAddress.province}, {order.shippingAddress.zip}
             </Text>
-            <Text style={styles.addressPhone}>{order.shippingAddress.phone}</Text>
+            <Text style={[styles.addressPhone, { fontFamily: getFontFamily(language, 'bold') }]}>{order.shippingAddress.phone}</Text>
           </View>
         </View>
 
@@ -114,20 +118,20 @@ export default function OrderDetailScreen() {
         <View style={styles.section}>
           <Text style={styles.sectionTitle}>ITEMS PURCHASED</Text>
           {order.items.map((item: any, idx: number) => (
-            <View key={idx} style={styles.itemRow}>
-              <View style={styles.itemImageContainer}>
+            <View key={idx} style={[styles.itemRow, { backgroundColor: currentColors.surface, borderColor: currentColors.border }]}>
+              <View style={[styles.itemImageContainer, { backgroundColor: theme === 'dark' ? Colors.dark.background : 'rgba(0,0,0,0.02)' }]}>
                 {item.thumbnail_url ? (
                   <Image source={{ uri: item.thumbnail_url }} style={styles.itemThumb} />
                 ) : (
-                  <Package size={24} color={Colors.dark.textMuted} />
+                  <Package size={24} color={currentColors.textMuted} />
                 )}
               </View>
               <View style={styles.itemInfo}>
-                <Text style={styles.itemBrand}>{item.brand.toUpperCase()}</Text>
-                <Text style={styles.itemModel}>{item.model}</Text>
-                <Text style={styles.itemQty}>Quantity: {item.quantity}</Text>
+                <Text style={[styles.itemBrand, { fontFamily: getFontFamily(language, 'black') }]}>{item.brand.toUpperCase()}</Text>
+                <Text style={[styles.itemModel, { color: currentColors.text, fontFamily: getFontFamily(language, 'bold') }]}>{item.model}</Text>
+                <Text style={[styles.itemQty, { color: currentColors.textMuted, fontFamily: getFontFamily(language) }]}>Quantity: {item.quantity}</Text>
               </View>
-              <Text style={styles.itemPrice}>
+              <Text style={[styles.itemPrice, { color: currentColors.text, fontFamily: getFontFamily(language, 'black') }]}>
                 ฿{(item.price_thb * item.quantity).toLocaleString()}
               </Text>
             </View>
@@ -135,19 +139,19 @@ export default function OrderDetailScreen() {
         </View>
 
         {/* Total Summary */}
-        <View style={styles.summaryCard}>
+        <View style={[styles.summaryCard, { backgroundColor: currentColors.surfaceStrong, borderColor: currentColors.border }]}>
           <View style={styles.summaryLine}>
-            <Text style={styles.summaryLabel}>Subtotal</Text>
-            <Text style={styles.summaryValue}>฿{order.totalAmount.toLocaleString()}</Text>
+            <Text style={[styles.summaryLabel, { color: currentColors.textMuted, fontFamily: getFontFamily(language) }]}>Subtotal</Text>
+            <Text style={[styles.summaryValue, { color: currentColors.text, fontFamily: getFontFamily(language, 'bold') }]}>฿{order.totalAmount.toLocaleString()}</Text>
           </View>
           <View style={styles.summaryLine}>
-            <Text style={styles.summaryLabel}>Shipping</Text>
-            <Text style={styles.summaryValue}>FREE</Text>
+            <Text style={[styles.summaryLabel, { color: currentColors.textMuted, fontFamily: getFontFamily(language) }]}>Shipping</Text>
+            <Text style={[styles.summaryValue, { color: '#10b981', fontFamily: getFontFamily(language, 'bold') }]}>FREE</Text>
           </View>
-          <View style={styles.divider} />
+          <View style={[styles.divider, { backgroundColor: currentColors.border }]} />
           <View style={styles.totalLine}>
-            <Text style={styles.totalLabel}>TOTAL PAID</Text>
-            <Text style={styles.totalValue}>฿{order.totalAmount.toLocaleString()}</Text>
+            <Text style={[styles.totalLabel, { color: currentColors.text, fontFamily: getFontFamily(language, 'black') }]}>TOTAL PAID</Text>
+            <Text style={[styles.totalValue, { fontFamily: getFontFamily(language, 'black') }]}>฿{order.totalAmount.toLocaleString()}</Text>
           </View>
         </View>
 
@@ -155,7 +159,7 @@ export default function OrderDetailScreen() {
           style={styles.helpBtn}
           onPress={() => Alert.alert('Support', 'Contacting SPEX support...')}
         >
-          <Text style={styles.helpBtnText}>Need help with this order?</Text>
+          <Text style={[styles.helpBtnText, { color: currentColors.textMuted, fontFamily: getFontFamily(language) }]}>Need help with this order?</Text>
         </TouchableOpacity>
       </ScrollView>
     </SafeAreaView>

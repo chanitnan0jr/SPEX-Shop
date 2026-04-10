@@ -3,6 +3,8 @@ import { View, Text, Image, TouchableOpacity, StyleSheet, ActivityIndicator } fr
 import { Plus, Minus, Trash2 } from 'lucide-react-native'
 import { Colors, Fonts, Radius, Spacing } from '../lib/constants'
 import { ICartItem } from '../lib/api'
+import { useUiPreferences } from '../context/ui-context'
+import { getFontFamily } from '../lib/fonts'
 
 interface CartItemProps {
   item: ICartItem
@@ -11,6 +13,8 @@ interface CartItemProps {
 }
 
 export default function CartItem({ item, onUpdateQuantity, onRemove }: CartItemProps) {
+  const { language, theme } = useUiPreferences()
+  const currentColors = theme === 'dark' ? Colors.dark : Colors.light
   const [isProcessing, setIsProcessing] = React.useState(false)
 
   const handleIncrement = async () => {
@@ -42,14 +46,14 @@ export default function CartItem({ item, onUpdateQuantity, onRemove }: CartItemP
   }
 
   return (
-    <View style={styles.container}>
+    <View style={[styles.container, { backgroundColor: currentColors.surface, borderColor: currentColors.border }]}>
       {/* Image */}
-      <View style={styles.imageContainer}>
+      <View style={[styles.imageContainer, { backgroundColor: currentColors.surfaceStrong }]}>
         {item.thumbnail_url ? (
           <Image source={{ uri: item.thumbnail_url }} style={styles.image} resizeMode="contain" />
         ) : (
           <View style={styles.imagePlaceholder}>
-            <Text style={styles.placeholderText}>{item.brand[0]}</Text>
+            <Text style={[styles.placeholderText, { color: currentColors.textMuted }]}>{item.brand[0]}</Text>
           </View>
         )}
       </View>
@@ -58,8 +62,8 @@ export default function CartItem({ item, onUpdateQuantity, onRemove }: CartItemP
       <View style={styles.details}>
         <View style={styles.header}>
           <View>
-            <Text style={styles.brand}>{item.brand.toUpperCase()}</Text>
-            <Text style={styles.model}>{item.model}</Text>
+            <Text style={[styles.brand, { color: Colors.primary, fontFamily: getFontFamily(language, 'black') }]}>{item.brand.toUpperCase()}</Text>
+            <Text style={[styles.model, { color: currentColors.text, fontFamily: getFontFamily(language, 'bold') }]}>{item.model}</Text>
           </View>
           <TouchableOpacity onPress={handleRemove} disabled={isProcessing}>
             <Trash2 size={18} color="#ef4444" />
@@ -67,23 +71,23 @@ export default function CartItem({ item, onUpdateQuantity, onRemove }: CartItemP
         </View>
 
         <View style={styles.footer}>
-          <Text style={styles.price}>
+          <Text style={[styles.price, { color: currentColors.text, fontFamily: getFontFamily(language, 'black') }]}>
             ฿{item.price_thb.toLocaleString()}
           </Text>
 
-          <View style={styles.stepper}>
+          <View style={[styles.stepper, { backgroundColor: currentColors.surfaceStrong }]}>
             <TouchableOpacity 
               onPress={handleDecrement} 
               style={[styles.stepBtn, item.quantity <= 1 && styles.stepBtnDisabled]}
               disabled={isProcessing || item.quantity <= 1}
             >
-              <Minus size={14} color={item.quantity <= 1 ? Colors.dark.textMuted : Colors.dark.text} />
+              <Minus size={14} color={item.quantity <= 1 ? currentColors.textMuted : currentColors.text} />
             </TouchableOpacity>
 
             {isProcessing ? (
               <ActivityIndicator size="small" color={Colors.primary} style={styles.loader} />
             ) : (
-              <Text style={styles.quantity}>{item.quantity}</Text>
+              <Text style={[styles.quantity, { color: currentColors.text, fontFamily: getFontFamily(language, 'bold') }]}>{item.quantity}</Text>
             )}
 
             <TouchableOpacity 
@@ -91,7 +95,7 @@ export default function CartItem({ item, onUpdateQuantity, onRemove }: CartItemP
               style={styles.stepBtn}
               disabled={isProcessing}
             >
-              <Plus size={14} color={Colors.dark.text} />
+              <Plus size={14} color={currentColors.text} />
             </TouchableOpacity>
           </View>
         </View>

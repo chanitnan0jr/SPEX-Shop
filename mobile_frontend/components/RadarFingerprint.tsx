@@ -11,6 +11,8 @@ import Animated, {
   useAnimatedProps
 } from 'react-native-reanimated'
 import { Colors, Fonts, Radius } from '../lib/constants'
+import { useUiPreferences } from '../context/ui-context'
+import { getFontFamily } from '../lib/fonts'
 
 const AnimatedG = Animated.createAnimatedComponent(G)
 
@@ -47,6 +49,8 @@ const COLORS = ['#38bdf8', '#10b981', '#f59e0b', '#a855f7']
 
 
 export const RadarFingerprint = ({ data }: RadarFingerprintProps) => {
+  const { language, theme } = useUiPreferences()
+  const currentColors = theme === 'dark' ? Colors.dark : Colors.light
   const [focusMode, setFocusMode] = React.useState<number | 'all'>('all')
   
   // Animation values for up to 4 devices
@@ -108,15 +112,15 @@ export const RadarFingerprint = ({ data }: RadarFingerprintProps) => {
   return (
     <View style={styles.container}>
       <View style={styles.headerRow}>
-        <Text style={styles.cardTitle}>PERFORMANCE ARCHITECTURE</Text>
+        <Text style={[styles.cardTitle, { color: theme === 'dark' ? 'rgba(255,255,255,0.4)' : 'rgba(15, 23, 42, 0.4)', fontFamily: getFontFamily(language, 'black') }]}>PERFORMANCE ARCHITECTURE</Text>
         
         {/* Focus Switch */}
-        <View style={styles.switchContainer}>
+        <View style={[styles.switchContainer, { backgroundColor: theme === 'dark' ? 'rgba(255,255,255,0.05)' : 'rgba(0,0,0,0.05)', borderColor: currentColors.border }]}>
           <TouchableOpacity 
             onPress={() => setFocusMode('all')}
             style={[styles.switchBtn, focusMode === 'all' && styles.switchBtnActive]}
           >
-            <Text style={[styles.switchText, focusMode === 'all' && styles.switchTextActive]}>ALL</Text>
+            <Text style={[styles.switchText, { color: theme === 'dark' ? 'rgba(255,255,255,0.4)' : 'rgba(15, 23, 42, 0.4)', fontFamily: getFontFamily(language, 'black') }, focusMode === 'all' && styles.switchTextActive]}>ALL</Text>
           </TouchableOpacity>
           {labels.map((label, i) => !!label && (
             <TouchableOpacity 
@@ -142,7 +146,7 @@ export const RadarFingerprint = ({ data }: RadarFingerprintProps) => {
               return `${p.x},${p.y}`
             }).join(' ')}
             fill="none"
-            stroke="rgba(255,255,255,0.08)"
+            stroke={theme === 'dark' ? 'rgba(255, 255, 255, 0.15)' : 'rgba(15, 23, 42, 0.08)'}
             strokeWidth="1"
           />
         ))}
@@ -156,7 +160,7 @@ export const RadarFingerprint = ({ data }: RadarFingerprintProps) => {
               y1={CENTER}
               x2={p.x}
               y2={p.y}
-              stroke="rgba(255,255,255,0.08)"
+              stroke={theme === 'dark' ? 'rgba(255, 255, 255, 0.15)' : 'rgba(15, 23, 42, 0.08)'}
               strokeWidth="1"
             />
           )
@@ -169,9 +173,9 @@ export const RadarFingerprint = ({ data }: RadarFingerprintProps) => {
               key={i}
               x={p.x}
               y={p.y}
-              fill={Colors.dark.textMuted}
+              fill={currentColors.textMuted}
               fontSize="8"
-              fontWeight="bold"
+              fontFamily={getFontFamily(language, 'bold')}
               textAnchor="middle"
               alignmentBaseline="middle"
             >
@@ -193,7 +197,7 @@ export const RadarFingerprint = ({ data }: RadarFingerprintProps) => {
             onPress={() => setFocusMode(i)}
           >
             <View style={[styles.dot, { backgroundColor: COLORS[i], shadowColor: COLORS[i] }]} />
-            <Text style={styles.legendText}>{label.toUpperCase()}</Text>
+            <Text style={[styles.legendText, { color: currentColors.text, fontFamily: getFontFamily(language, 'black') }]}>{label.toUpperCase()}</Text>
           </TouchableOpacity>
         ))}
       </View>
@@ -216,17 +220,13 @@ const styles = StyleSheet.create({
   },
   cardTitle: {
     fontSize: 9,
-    fontWeight: '900',
-    color: 'rgba(255,255,255,0.4)',
     letterSpacing: 1.5,
   },
   switchContainer: {
     flexDirection: 'row',
-    backgroundColor: 'rgba(255,255,255,0.05)',
     padding: 2,
     borderRadius: Radius.md,
     borderWidth: 1,
-    borderColor: 'rgba(255,255,255,0.08)',
   },
   switchBtn: {
     paddingHorizontal: 10,
@@ -238,8 +238,6 @@ const styles = StyleSheet.create({
   },
   switchText: {
     fontSize: 8,
-    fontWeight: '900',
-    color: 'rgba(255,255,255,0.4)',
     letterSpacing: 0.5,
   },
   switchTextActive: {
@@ -266,8 +264,6 @@ const styles = StyleSheet.create({
   },
   legendText: {
     fontSize: 8,
-    fontWeight: '900',
-    color: '#fff',
     letterSpacing: 1,
   },
 })

@@ -164,10 +164,10 @@ export default function Home() {
 
             {/* Quick Stats Overlay */}
             <div className="pt-16 grid grid-cols-2 md:grid-cols-4 gap-12 border-t border-slate-200/50 dark:border-white/10">
-               <Stat label="DEVICES" value="1,500+" />
-               <Stat label="BRANDS" value="250+" />
-               <Stat label="BENCHMARKS" value="10k+" />
-               <Stat label="ACCURACY" value="100%" subtext="AI ไม่หลอน 100% มั้ง" />
+               <Stat label={pickText(language, { en: 'DEVICES', th: 'อุปกรณ์' })} value="1,500+" />
+               <Stat label={pickText(language, { en: 'BRANDS', th: 'แบรนด์' })} value="250+" />
+               <Stat label={pickText(language, { en: 'BENCHMARKS', th: 'ผลทดสอบ' })} value="10k+" />
+               <Stat label={pickText(language, { en: 'ACCURACY', th: 'ความแม่นยำ' })} value="100%" subtext={pickText(language, { en: 'AI Verified', th: 'AI ไม่หลอน 100% มั้ง' })} />
             </div>
           </section>
         </motion.div>
@@ -210,7 +210,9 @@ export default function Home() {
             <div className="flex-1 space-y-8">
               <div className="inline-flex items-center gap-2 rounded-full bg-sky-500/10 px-3 py-1 text-[10px] font-black uppercase tracking-[0.2em] text-sky-500 border border-sky-500/20">
                 {isSyncing ? <Loader2 className="h-4 w-4 animate-spin" /> : <BarChart3 className="h-4 w-4" />}
-                {isSyncing ? 'Synchronizing Hardware...' : 'Architecture Framework'}
+                {isSyncing 
+                  ? pickText(language, { en: 'Synchronizing Hardware...', th: 'กำลังซิงค์ข้อมูลฮาร์ดแวร์...' }) 
+                  : pickText(language, { en: 'Architecture Framework', th: 'โครงสร้างสถาปัตยกรรม' })}
               </div>
               <h2 className="font-heading text-4xl font-black text-slate-950 dark:text-white uppercase tracking-tighter">
                 {pickText(language, { en: 'Radar Fingerprint', th: 'ข้อมูลอัตลักษณ์ประสิทธิภาพ' })}
@@ -224,10 +226,10 @@ export default function Home() {
               
               <div className="grid grid-cols-2 gap-8 pt-4">
                 {[
-                  { l: 'CPU Density', v: '98th %' },
-                  { l: 'Storage Arch', v: 'UFS 4.0' },
-                  { l: 'Energy Flux', v: 'Optimum' },
-                  { l: 'Memory Band', v: '8.5GB/s' },
+                  { l: pickText(language, { en: 'CPU Density', th: 'ความหนาแน่น CPU' }), v: '98th %' },
+                  { l: pickText(language, { en: 'Storage Arch', th: 'สถาปัตยกรรมข้อมูล' }), v: 'UFS 4.0' },
+                  { l: pickText(language, { en: 'Energy Flux', th: 'สถานะพลังงาน' }), v: 'Optimum' },
+                  { l: pickText(language, { en: 'Memory Band', th: 'แบนด์วิดท์หน่วยความจำ' }), v: '8.5GB/s' },
                 ].map((s, i) => (
                   <div key={i} className="space-y-1">
                     <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">{s.l}</p>
@@ -255,7 +257,7 @@ export default function Home() {
               </p>
             </div>
             <Link href="/compare" className="flex items-center gap-2 text-[10px] font-black uppercase tracking-widest text-sky-500 hover:text-sky-600 transition-colors">
-              View All Analysis <ArrowRight className="h-3 w-3" />
+              {pickText(language, { en: 'View All Analysis', th: 'ดูการวิเคราะห์ทั้งหมด' })} <ArrowRight className="h-3 w-3" />
             </Link>
           </div>
 
@@ -299,10 +301,10 @@ export default function Home() {
 
               <div className="flex flex-wrap items-center justify-center md:justify-start gap-8 pt-4">
                 <div className="flex items-center gap-2 text-[10px] font-black uppercase tracking-[0.2em] text-emerald-600 dark:text-emerald-500">
-                  <CheckCircle className="h-4 w-4" /> AVAILABLE FOR REMOTE
+                  <CheckCircle className="h-4 w-4" /> {pickText(language, { en: 'AVAILABLE FOR REMOTE', th: 'พร้อมทำงานแบบ REMOTE' })}
                 </div>
                 <div className="flex items-center gap-2 text-[10px] font-black uppercase tracking-[0.2em] text-sky-600 dark:text-sky-500">
-                  <CheckCircle className="h-4 w-4" /> FULL-STACK PROFICIENCY
+                  <CheckCircle className="h-4 w-4" /> {pickText(language, { en: 'FULL-STACK PROFICIENCY', th: 'ทักษะระดับ FULL-STACK' })}
                 </div>
               </div>
             </div>
@@ -316,7 +318,9 @@ export default function Home() {
                   <Mail className="h-6 w-6 text-white" />
                 </div>
                 <div className="text-left">
-                  <p className="text-[11px] font-black uppercase tracking-widest opacity-50 mb-1">Email</p>
+                  <p className="text-[11px] font-black uppercase tracking-widest opacity-50 mb-1">
+                    {pickText(language, { en: 'Email', th: 'อีเมล' })}
+                  </p>
                   <p className="text-lg font-black tracking-tight">Ch4n1tnan@gmail.com</p>
                 </div>
               </a>
@@ -329,7 +333,9 @@ export default function Home() {
                   <Phone className="h-6 w-6 text-white" />
                 </div>
                 <div className="text-left">
-                  <p className="text-[11px] font-black uppercase tracking-widest opacity-50 mb-1">Call</p>
+                  <p className="text-[11px] font-black uppercase tracking-widest opacity-50 mb-1">
+                    {pickText(language, { en: 'Call', th: 'โทรศัพท์' })}
+                  </p>
                   <p className="text-lg font-black tracking-tight">061-390-5655</p>
                 </div>
               </a>
@@ -337,6 +343,7 @@ export default function Home() {
           </div>
         </section>
       </main>
+      <ChatPopup />
     </div>
   )
 }

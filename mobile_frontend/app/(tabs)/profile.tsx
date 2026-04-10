@@ -21,10 +21,15 @@ import {
 } from 'lucide-react-native'
 import { Colors, Fonts, Radius, Spacing } from '../../lib/constants'
 import { useAuth } from '../../context/auth'
+import { pickText } from '../../lib/i18n'
+import { useUiPreferences } from '../../context/ui-context'
+import { getFontFamily } from '../../lib/fonts'
 
 export default function ProfileScreen() {
   const router = useRouter()
   const { user, signOut } = useAuth()
+  const { language, theme } = useUiPreferences()
+  const currentColors = theme === 'dark' ? Colors.dark : Colors.light
 
   const handleSignOut = async () => {
     await signOut()
@@ -33,18 +38,22 @@ export default function ProfileScreen() {
 
   const renderGuestState = () => (
     <View style={styles.guestContainer}>
-      <View style={styles.guestIconContainer}>
-        <UserIcon size={48} color={Colors.dark.textMuted} />
+      <View style={[styles.guestIconContainer, { backgroundColor: currentColors.surface }]}>
+        <UserIcon size={48} color={currentColors.textMuted} />
       </View>
-      <Text style={styles.guestTitle}>Welcome to SPEX</Text>
-      <Text style={styles.guestSubtitle}>
-        Sign in to save your preferences, sync your cart, and manage your orders.
+      <Text style={[styles.guestTitle, { color: currentColors.text, fontFamily: getFontFamily(language, 'black') }]}>
+        {pickText(language, { en: 'Welcome to SPEX', th: 'ยินดีต้อนรับสู่ SPEX' })}
+      </Text>
+      <Text style={[styles.guestSubtitle, { color: currentColors.textMuted, fontFamily: getFontFamily(language) }]}>
+        {pickText(language, { en: 'Sign in to save your preferences, sync your cart, and manage your orders.', th: 'เข้าสู่ระบบเพื่อบันทึกการตั้งค่า ซิงค์ตะกร้าสินค้า และจัดการคำสั่งซื้อของคุณ' })}
       </Text>
       <TouchableOpacity
         style={styles.loginBtn}
         onPress={() => router.push('/auth/login')}
       >
-        <Text style={styles.loginBtnText}>SIGN IN / SIGN UP</Text>
+        <Text style={[styles.loginBtnText, { color: '#FFFFFF', fontFamily: getFontFamily(language, 'black') }]}>
+          {pickText(language, { en: 'SIGN IN / SIGN UP', th: 'เข้าสู่ระบบ / ลงทะเบียน' })}
+        </Text>
       </TouchableOpacity>
     </View>
   )
@@ -53,7 +62,7 @@ export default function ProfileScreen() {
     <View style={styles.profileSection}>
       <View style={styles.avatarContainer}>
         <View style={styles.avatar}>
-          <Text style={styles.avatarText}>
+          <Text style={[styles.avatarText, { color: currentColors.text, fontFamily: getFontFamily(language, 'bold') }]}>
             {user?.name?.charAt(0).toUpperCase() || 'U'}
           </Text>
         </View>
@@ -62,71 +71,89 @@ export default function ProfileScreen() {
         </View>
       </View>
       
-      <Text style={styles.userName}>{user?.name}</Text>
-      <Text style={styles.userEmail}>{user?.email}</Text>
+      <Text style={[styles.userName, { color: currentColors.text, fontFamily: getFontFamily(language, 'bold') }]}>{user?.name}</Text>
+      <Text style={[styles.userEmail, { color: currentColors.textMuted, fontFamily: getFontFamily(language) }]}>{user?.email}</Text>
 
-      <View style={styles.statsContainer}>
+      <View style={[styles.statsContainer, { backgroundColor: currentColors.surface, borderColor: currentColors.border }]}>
         <View style={styles.statItem}>
-          <Text style={styles.statValue}>12</Text>
-          <Text style={styles.statLabel}>Orders</Text>
+          <Text style={[styles.statValue, { color: currentColors.text, fontFamily: getFontFamily(language, 'bold') }]}>12</Text>
+          <Text style={[styles.statLabel, { color: currentColors.textMuted, fontFamily: getFontFamily(language) }]}>
+            {pickText(language, { en: 'Orders', th: 'คำสั่งซื้อ' })}
+          </Text>
         </View>
-        <View style={styles.statDivider} />
+        <View style={[styles.statDivider, { backgroundColor: currentColors.border }]} />
         <View style={styles.statItem}>
-          <Text style={styles.statValue}>5</Text>
-          <Text style={styles.statLabel}>Saved</Text>
+          <Text style={[styles.statValue, { color: currentColors.text, fontFamily: getFontFamily(language, 'bold') }]}>5</Text>
+          <Text style={[styles.statLabel, { color: currentColors.textMuted, fontFamily: getFontFamily(language) }]}>
+            {pickText(language, { en: 'Saved', th: 'บันทึกแล้ว' })}
+          </Text>
         </View>
       </View>
     </View>
   )
 
   return (
-    <SafeAreaView style={styles.container}>
-      <StatusBar barStyle="light-content" />
+    <SafeAreaView style={[styles.container, { backgroundColor: currentColors.background }]}>
+      <StatusBar barStyle={theme === 'dark' ? 'light-content' : 'dark-content'} />
       <ScrollView contentContainerStyle={styles.scrollContent} showsVerticalScrollIndicator={false}>
         <View style={styles.header}>
-          <Text style={styles.title}>Account</Text>
-          <TouchableOpacity style={styles.settingsBtn}>
-            <Settings size={22} color={Colors.dark.text} />
+          <Text style={[styles.title, { color: currentColors.text, fontFamily: getFontFamily(language, 'black') }]}>
+            {pickText(language, { en: 'Account', th: 'บัญชี' })}
+          </Text>
+          <TouchableOpacity 
+            style={[styles.settingsBtn, { backgroundColor: currentColors.surface, borderColor: currentColors.border }]}
+            onPress={() => router.push('/settings')}
+            activeOpacity={0.7}
+          >
+            <Settings size={22} color={currentColors.text} />
           </TouchableOpacity>
         </View>
 
         {user ? renderProfileState() : renderGuestState()}
 
         <View style={styles.menuSection}>
-          <Text style={styles.menuTitle}>ACTIVITY</Text>
+          <Text style={[styles.menuTitle, { color: currentColors.textMuted, fontFamily: getFontFamily(language, 'black') }]}>
+            {pickText(language, { en: 'ACTIVITY', th: 'กิจกรรม' })}
+          </Text>
           
           <TouchableOpacity 
-            style={styles.menuItem}
+            style={[styles.menuItem, { backgroundColor: currentColors.surface, borderColor: currentColors.border }]}
             onPress={() => router.push('/orders')}
           >
             <View style={styles.menuItemLeft}>
               <View style={[styles.menuIcon, { backgroundColor: 'rgba(20, 104, 255, 0.1)' }]}>
                 <ShoppingBag size={20} color={Colors.primary} />
               </View>
-              <Text style={styles.menuItemText}>My Orders</Text>
+              <Text style={[styles.menuItemText, { color: currentColors.text, fontFamily: getFontFamily(language, 'bold') }]}>
+                {pickText(language, { en: 'My Orders', th: 'คำสั่งซื้อของฉัน' })}
+              </Text>
             </View>
-            <ChevronRight size={18} color={Colors.dark.textMuted} />
+            <ChevronRight size={18} color={currentColors.textMuted} />
           </TouchableOpacity>
 
-          <TouchableOpacity style={styles.menuItem}>
+          <TouchableOpacity style={[styles.menuItem, { backgroundColor: currentColors.surface, borderColor: currentColors.border }]}>
             <View style={styles.menuItemLeft}>
               <View style={[styles.menuIcon, { backgroundColor: 'rgba(16, 185, 129, 0.1)' }]}>
                 <CircleUser size={20} color="#10b981" />
               </View>
-              <Text style={styles.menuItemText}>Edit Profile</Text>
+              <Text style={[styles.menuItemText, { color: currentColors.text, fontFamily: getFontFamily(language, 'bold') }]}>
+                {pickText(language, { en: 'Edit Profile', th: 'แก้ไขโปรไฟล์' })}
+              </Text>
             </View>
-            <ChevronRight size={18} color={Colors.dark.textMuted} />
+            <ChevronRight size={18} color={currentColors.textMuted} />
           </TouchableOpacity>
         </View>
 
         {user && (
           <TouchableOpacity style={styles.signOutBtn} onPress={handleSignOut}>
             <LogOut size={20} color="#ef4444" />
-            <Text style={styles.signOutText}>Sign Out</Text>
+            <Text style={[styles.signOutText, { fontFamily: getFontFamily(language, 'bold') }]}>
+              {pickText(language, { en: 'Sign Out', th: 'ออกจากระบบ' })}
+            </Text>
           </TouchableOpacity>
         )}
 
-        <Text style={styles.versionText}>SPEX MOBILE v1.0.0</Text>
+        <Text style={[styles.versionText, { color: currentColors.textMuted, fontFamily: getFontFamily(language) }]}>SPEX MOBILE v1.0.0</Text>
       </ScrollView>
     </SafeAreaView>
   )

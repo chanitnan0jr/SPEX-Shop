@@ -17,12 +17,18 @@ import { getProducts, getBrands } from '../../lib/api'
 import { ProductCard } from '../../components/ProductCard'
 import { Colors, Fonts, Spacing, Radius } from '../../lib/constants'
 import type { Spec } from '../../types/spec'
+import { pickText } from '../../lib/i18n'
+import { useUiPreferences } from '../../context/ui-context'
+import { getFontFamily } from '../../lib/fonts'
 
 const { width: SCREEN_WIDTH } = Dimensions.get('window')
 const NUM_COLUMNS = 2
 
 export default function ShopScreen() {
   const router = useRouter()
+  const { language, theme } = useUiPreferences()
+  const currentColors = theme === 'dark' ? Colors.dark : Colors.light
+  const fontFamily = language === 'th' ? Fonts.families.thai : Fonts.families.english
   const [selectedBrand, setSelectedBrand] = useState<string | undefined>(undefined)
 
   const { data: brands = [] } = useQuery({
@@ -71,13 +77,17 @@ export default function ShopScreen() {
     () => (
       <View style={styles.headerContainer}>
         {/* Top subtle glow */}
-        <View style={styles.topGlow} />
+        <View style={[styles.topGlow, { backgroundColor: theme === 'dark' ? 'rgba(20, 104, 255, 0.1)' : 'rgba(20, 104, 255, 0.05)' }]} />
         
         <View style={styles.heroSection}>
-          <Text style={styles.heroTagline}>PREMIUM SELECTION</Text>
-          <Text style={styles.heroTitle}>
-            Discover your{'\n'}
-            <Text style={styles.heroTitleAccent}>perfect device</Text>
+          <Text style={[styles.heroTagline, { color: Colors.primary, fontFamily: getFontFamily(language, 'black') }]}>
+            {pickText(language, { en: 'PREMIUM SELECTION', th: 'คัดสรรระดับพรีเมียม' })}
+          </Text>
+          <Text style={[styles.heroTitle, { color: currentColors.text, fontFamily: getFontFamily(language, 'black') }]}>
+            {pickText(language, { en: 'Discover your', th: 'ค้นพบ' })}{'\n'}
+            <Text style={[styles.heroTitleAccent, { color: Colors.primaryLight, fontFamily: getFontFamily(language, 'black') }]}>
+              {pickText(language, { en: 'perfect device', th: 'อุปกรณ์ที่ใช่สำหรับคุณ' })}
+            </Text>
           </Text>
         </View>
 
@@ -85,18 +95,26 @@ export default function ShopScreen() {
           <FlatList
             horizontal
             showsHorizontalScrollIndicator={false}
-            data={['All Brands', ...brands]}
+            data={[pickText(language, { en: 'All Brands', th: 'ทุกแบรนด์' }), ...brands]}
             keyExtractor={(item) => item}
             contentContainerStyle={styles.filterList}
             renderItem={({ item }) => {
-              const isAll = item === 'All Brands'
+              const isAll = item === pickText(language, { en: 'All Brands', th: 'ทุกแบรนด์' })
               const isActive = isAll ? !selectedBrand : selectedBrand === item
               return (
                 <TouchableOpacity
                   onPress={() => setSelectedBrand(isAll ? undefined : item)}
-                  style={[styles.filterChip, isActive && styles.filterChipActive]}
+                  style={[
+                    styles.filterChip, 
+                    { backgroundColor: currentColors.surfaceStrong, borderColor: currentColors.border },
+                    isActive && { backgroundColor: Colors.primary, borderColor: Colors.primary }
+                  ]}
                 >
-                  <Text style={[styles.filterText, isActive && styles.filterTextActive]}>
+                  <Text style={[
+                    styles.filterText, 
+                    { color: currentColors.textSecondary, fontFamily: getFontFamily(language, 'bold') },
+                    isActive && { color: '#ffffff' }
+                  ]}>
                     {item}
                   </Text>
                 </TouchableOpacity>
@@ -106,20 +124,20 @@ export default function ShopScreen() {
         </View>
       </View>
     ),
-    [brands, selectedBrand]
+    [brands, selectedBrand, language, theme, currentColors, fontFamily]
   )
 
   if (isLoading && !isRefetching) {
     return (
-      <View style={styles.loadingFull}>
+      <View style={[styles.loadingFull, { backgroundColor: currentColors.background }]}>
          <ActivityIndicator color={Colors.primary} size="large" />
       </View>
     )
   }
 
   return (
-    <SafeAreaView style={styles.container}>
-      <StatusBar barStyle="light-content" />
+    <SafeAreaView style={[styles.container, { backgroundColor: currentColors.background }]}>
+      <StatusBar barStyle={theme === 'dark' ? 'light-content' : 'dark-content'} />
       <FlatList
         data={products}
         renderItem={renderItem}
@@ -151,16 +169,14 @@ export default function ShopScreen() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: Colors.dark.background,
   },
   scrollContent: {
-    paddingBottom: 140,
+    paddingBottom: 110,
   },
   loadingFull: {
     flex: 1,
     justifyContent: 'center',
     alignItems: 'center',
-    backgroundColor: Colors.dark.background,
   },
   cardContainer: {
     width: '50%',
@@ -194,7 +210,6 @@ const styles = StyleSheet.create({
   heroTitle: {
     fontSize: Fonts.sizes['3xl'],
     fontWeight: Fonts.weights.bold,
-    color: Colors.dark.text,
     lineHeight: 42,
   },
   heroTitleAccent: {
@@ -210,10 +225,8 @@ const styles = StyleSheet.create({
     paddingHorizontal: Spacing.lg,
     paddingVertical: 10,
     borderRadius: Radius.full,
-    backgroundColor: Colors.dark.surfaceStrong,
     marginRight: Spacing.sm,
     borderWidth: 1,
-    borderColor: Colors.dark.border,
   },
   filterChipActive: {
     backgroundColor: Colors.primary,
@@ -222,7 +235,6 @@ const styles = StyleSheet.create({
   filterText: {
     fontSize: Fonts.sizes.sm,
     fontWeight: Fonts.weights.semibold,
-    color: Colors.dark.textSecondary,
   },
   filterTextActive: {
     color: '#ffffff',
