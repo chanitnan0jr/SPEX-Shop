@@ -680,7 +680,7 @@ const styles = StyleSheet.create({
     backgroundColor: Colors.dark.background,
     borderRadius: Radius['3xl'],
     width: '100%',
-    maxHeight: SCREEN_HEIGHT * 0.85,
+    height: SCREEN_HEIGHT * 0.85,
     borderWidth: 1,
     borderColor: 'rgba(255,255,255,0.12)',
     overflow: 'hidden',
