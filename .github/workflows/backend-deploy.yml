@@ -41,3 +41,17 @@ jobs:
           app-name: Specbot-backend
           publish-profile: ${{ secrets.AZURE_WEBAPP_PUBLISH_PROFILE }}
           package: backend/deploy
+          # FORCE UNLOCK: This tells Azure to stop building and just run the zip
+          app-settings-json: |
+            [
+              {
+                "name": "SCM_DO_BUILD_DURING_DEPLOYMENT",
+                "value": "false",
+                "slotSetting": false
+              },
+              {
+                "name": "WEBSITE_RUN_FROM_PACKAGE",
+                "value": "1",
+                "slotSetting": false
+              }
+            ]
