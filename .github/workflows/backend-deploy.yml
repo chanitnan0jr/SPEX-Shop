@@ -35,25 +35,6 @@ jobs:
           cp backend/package-lock.json backend/deploy/
           # Copy .env.example as .env if needed, or rely on Azure App Settings (preferred)
 
-      - name: 'Set Azure App Settings'
-        uses: azure/appservice-settings@v1
-        with:
-          app-name: Specbot-backend
-          publish-profile: ${{ secrets.AZURE_WEBAPP_PUBLISH_PROFILE }}
-          app-settings-json: |
-            [
-              {
-                "name": "SCM_DO_BUILD_DURING_DEPLOYMENT",
-                "value": "false",
-                "slotSetting": false
-              },
-              {
-                "name": "WEBSITE_RUN_FROM_PACKAGE",
-                "value": "1",
-                "slotSetting": false
-              }
-            ]
-
       - name: 'Deploy to Azure Web App'
         uses: azure/webapps-deploy@v2
         with:
