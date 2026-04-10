@@ -80,10 +80,10 @@ export function ChatBox() {
       setActiveSessionId(currentSessions[0].id)
     } else {
       // Create first session if none exists
-      const newId = Date.now().toString()
+      const newId = Date.now().toString().slice(-6)
       const firstSession: ChatSession = {
         id: newId,
-        title: `${newId} - ` + pickText(language, { en: 'New Conversation', th: 'การสนทนาใหม่' }),
+        title: `SID-${newId}`,
         createdAt: Date.now(),
       }
       setSessions([firstSession])
@@ -158,10 +158,10 @@ export function ChatBox() {
   }, [messages, activeSessionId, isLoaded, sessions, language])
 
   const handleCreateSession = () => {
-    const newId = Date.now().toString()
+    const newId = Date.now().toString().slice(-6)
     const newSession: ChatSession = {
       id: newId,
-      title: `${newId} - ` + pickText(language, { en: 'New Chat', th: 'แชทใหม่' }) + ` ${sessions.length + 1}`,
+      title: `SID-${newId}`,
       createdAt: Date.now(),
     }
     const updatedSessions = [newSession, ...sessions]
@@ -399,7 +399,7 @@ export function ChatBox() {
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
-            className="absolute inset-0 z-50 bg-white/95 backdrop-blur-md px-5 py-6 flex flex-col justify-center dark:bg-slate-950/95 md:px-6"
+            className="absolute inset-0 z-[60] bg-white/98 backdrop-blur-md px-5 py-6 flex flex-col justify-center dark:bg-slate-950/98 md:px-6"
           >
             <motion.div
               initial={{ y: 20, scale: 0.95 }}
