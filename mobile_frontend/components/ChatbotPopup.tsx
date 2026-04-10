@@ -16,13 +16,7 @@ import {
   UIManager,
   ScrollView,
 } from 'react-native'
-import Animated, { 
-  useSharedValue, 
-  useAnimatedStyle, 
-  withTiming, 
-  interpolate,
-  Easing,
-} from 'react-native-reanimated'
+import Animated from 'react-native-reanimated'
 import { useMutation } from '@tanstack/react-query'
 import AsyncStorage from '@react-native-async-storage/async-storage'
 import { useRouter } from 'expo-router'
@@ -106,9 +100,6 @@ export default function ChatbotPopup({ visible, onClose }: ChatbotPopupProps) {
   const [activeSessionTimestamp, setActiveSessionTimestamp] = useState<string | null>(null)
   const [pendingDeleteId, setPendingDeleteId] = useState<string | null>(null)
   
-  // Reanimated Shared Values
-  const expansion = useSharedValue(1)
-  const contentHeightSV = useSharedValue(0)
 
   useEffect(() => {
     if (visible) {
@@ -152,32 +143,10 @@ export default function ChatbotPopup({ visible, onClose }: ChatbotPopupProps) {
   }, [messages, activeSessionId, activeSessionTitle, activeSessionTimestamp])
 
   const toggleHeader = () => {
-    const nextState = !isHeaderExpanded
-    setIsHeaderExpanded(nextState)
-    expansion.value = withTiming(nextState ? 1 : 0, {
-      duration: 300,
-      easing: Easing.bezier(0.25, 0.1, 0.25, 1),
-    })
+    setIsHeaderExpanded(prev => !prev)
   }
 
-  const headerAnimatedStyle = useAnimatedStyle(() => {
-    const h = contentHeightSV.value
-    if (h === 0) {
-      // Not measured yet — show naturally so onLayout can fire
-      return { opacity: 1, overflow: 'hidden' }
-    }
-    return {
-      height: interpolate(expansion.value, [0, 1], [0, h]),
-      opacity: interpolate(expansion.value, [0, 0.5, 1], [0, 0, 1]),
-      overflow: 'hidden',
-    }
-  })
-
-  const chevronAnimatedStyle = useAnimatedStyle(() => {
-    return {
-      transform: [{ rotate: `${interpolate(expansion.value, [0, 1], [0, 180])}deg` }],
-    }
-  })
+  const chevronStyle = { transform: [{ rotate: isHeaderExpanded ? '180deg' : '0deg' }] }
 
   const saveToHistory = async (q: string) => {
     const updated = [q, ...history.filter((h) => h !== q)].slice(0, 10)
@@ -415,19 +384,13 @@ export default function ChatbotPopup({ visible, onClose }: ChatbotPopupProps) {
                   <Text style={[styles.headerSubtitle, { color: currentColors.textMuted, fontFamily: getFontFamily(language, 'black') }]}>CLICK TO {isHeaderExpanded ? 'COLLAPSE' : 'EXPAND'}</Text>
                 </View>
               </View>
-              <Animated.View style={[styles.titleRight, chevronAnimatedStyle]}>
+              <View style={[styles.titleRight, chevronStyle]}>
                 <ChevronDown size={20} color={currentColors.textMuted} />
-              </Animated.View>
+              </View>
             </TouchableOpacity>
 
-            <Animated.View style={headerAnimatedStyle}>
-              <View 
-                style={styles.expandedContent}
-                onLayout={(e) => {
-                  const h = e.nativeEvent.layout.height
-                  if (h > 0) contentHeightSV.value = h
-                }}
-              >
+            {isHeaderExpanded && (
+              <View style={styles.expandedContent}>
                 <View style={styles.badgeRow}>
                   <View style={[styles.badge, { backgroundColor: theme === 'dark' ? 'rgba(255,255,255,0.05)' : 'rgba(0,0,0,0.03)', borderColor: currentColors.border }]}>
                     <Text style={[styles.badgeText, { color: currentColors.textMuted, fontFamily: getFontFamily(language, 'black') }]}>KAGGLE_DATA</Text>
@@ -475,7 +438,7 @@ export default function ChatbotPopup({ visible, onClose }: ChatbotPopupProps) {
                   </View>
                 )}
               </View>
-            </Animated.View>
+            )}
           </View>
 
           {/* SECTION 2: CHAT HISTORY */}
