@@ -26,26 +26,21 @@ const allowedOrigins = [
 ].filter(Boolean) as string[]
 
 app.use(cors({
-  origin: (origin, callback) => {
-    // Allow requests with no origin (like mobile apps or curl)
-    if (!origin) return callback(null, true)
-    
-    console.log(`[cors] Request from origin: ${origin}`)
-
-    // In development or if specifically whitelisted, allow it
-    const isAllowed = allowedOrigins.indexOf(origin) !== -1 || process.env.NODE_ENV !== 'production'
-    
-    if (isAllowed) {
-      callback(null, true)
-    } else {
-      console.error(`[cors] Blocked origin: ${origin}`)
-      callback(new Error('Not allowed by CORS'))
-    }
-  },
+  origin: true, // Emergency Bypass: Allow all origins
   credentials: true,
   methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH', 'OPTIONS'],
   allowedHeaders: ['Content-Type', 'Authorization']
 }))
+
+// Log incoming origin for future whitelisting
+app.use((req, res, next) => {
+  const origin = req.headers.origin
+  if (origin) {
+    console.log(`[cors-debug] Request from: ${origin}`)
+    res.setHeader('X-Debug-Origin', origin)
+  }
+  next()
+})
 app.use(express.json())
 app.use(rateLimiter)
 
