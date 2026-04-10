@@ -114,7 +114,7 @@ export function Sidebar() {
             {/* Desktop Toggle Button */}
             <button
               onClick={() => setIsSidebarCollapsed(!isSidebarCollapsed)}
-              className="absolute top-6 -right-4 h-10 w-10 hidden xl:flex items-center justify-center rounded-2xl bg-slate-950 border border-white/10 shadow-2xl text-white/50 hover:text-sky-400 hover:border-sky-500/50 transition-all z-50 cursor-pointer"
+              className="absolute top-4 -right-4 h-10 w-10 hidden xl:flex items-center justify-center rounded-2xl bg-slate-950 text-white shadow-xl dark:bg-white dark:text-slate-950 border border-white/10 dark:border-slate-200/10 hover:scale-110 transition-all z-50 cursor-pointer"
             >
               {isSidebarCollapsed ? <PanelLeft className="h-5 w-5" /> : <PanelLeftClose className="h-5 w-5" />}
             </button>

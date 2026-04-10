@@ -27,23 +27,22 @@ export function UiPreferencesProvider({ children }: { children: React.ReactNode 
   const [theme, setTheme] = useState<Theme>('dark')
   const [isSidebarCollapsed, setIsSidebarCollapsed] = useState<boolean>(false)
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState<boolean>(false)
+  const [isMounted, setIsMounted] = useState(false)
 
   useEffect(() => {
-    // Synchronize with localStorage on mount
+    // Initial sync
     const storedLanguage = window.localStorage.getItem(LANGUAGE_KEY) as Language | null
-    if (storedLanguage && (storedLanguage === 'en' || storedLanguage === 'th')) {
-      setLanguage(storedLanguage)
-    }
+    if (storedLanguage) setLanguage(storedLanguage)
 
     const storedTheme = window.localStorage.getItem(THEME_KEY) as Theme | null
-    if (storedTheme && (storedTheme === 'dark' || storedTheme === 'light')) {
-      setTheme(storedTheme)
-    }
+    if (storedTheme) setTheme(storedTheme)
 
     const storedSidebar = window.localStorage.getItem(SIDEBAR_COLLAPSED_KEY)
     if (storedSidebar !== null) {
       setIsSidebarCollapsed(storedSidebar === 'true')
     }
+    
+    setIsMounted(true)
   }, [])
 
   useEffect(() => {
