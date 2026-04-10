@@ -21,19 +21,23 @@ jobs:
         with:
           node-version: '22'
 
-      - name: Install dependencies
-        run: |
-          cd backend
-          npm install
-
       - name: Build project
         run: |
           cd backend
+          npm install
           npm run build
+
+      - name: Prepare deployment package
+        run: |
+          mkdir -p backend/deploy
+          cp -r backend/dist backend/deploy/
+          cp backend/package.json backend/deploy/
+          cp backend/package-lock.json backend/deploy/
+          # Copy .env.example as .env if needed, or rely on Azure App Settings (preferred)
 
       - name: 'Deploy to Azure Web App'
         uses: azure/webapps-deploy@v2
         with:
           app-name: Specbot-backend
           publish-profile: ${{ secrets.AZURE_WEBAPP_PUBLISH_PROFILE }}
-          package: backend
+          package: backend/deploy
