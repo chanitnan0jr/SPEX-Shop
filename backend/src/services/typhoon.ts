@@ -40,7 +40,7 @@ export class TyphoonService {
           'Authorization': `Bearer ${TYPHOON_API_KEY}`,
           'Content-Type': 'application/json'
         },
-        timeout: 60000 // 60s timeout for complex RAG
+        timeout: 25000 // 25s timeout (must be less than Azure Gateway timeout)
       })
       return response.data.choices[0].message.content
     } catch (error: any) {

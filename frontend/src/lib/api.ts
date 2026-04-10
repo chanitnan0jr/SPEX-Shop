@@ -12,7 +12,28 @@ const baseURL = `${getBaseUrl().replace(/\/$/, '')}/api`
 
 const api = axios.create({
   baseURL,
+  timeout: 45000, // 45s timeout
 })
+
+// Add debugging interceptors to track "Why it's like this" in the browser
+api.interceptors.request.use((config) => {
+  console.log(`[api] Request: ${config.method?.toUpperCase()} ${config.url}`)
+  return config
+})
+
+api.interceptors.response.use(
+  (response) => response,
+  (error) => {
+    if (error.response) {
+      console.error(`[api] Error ${error.response.status}:`, error.response.data)
+    } else if (error.request) {
+      console.error('[api] No response received:', error.request)
+    } else {
+      console.error('[api] Request Error:', error.message)
+    }
+    return Promise.reject(error)
+  }
+)
 
 export interface SpecHighlights {
   display?: string
