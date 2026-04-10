@@ -19,6 +19,8 @@ import { Colors, Fonts, Spacing, Radius } from '../../lib/constants'
 import { getImageSource } from '../../lib/images'
 import { useCart } from '../../hooks/useCart'
 
+import { Monitor, Zap, Camera, Battery } from 'lucide-react-native'
+
 const { width: SCREEN_WIDTH } = Dimensions.get('window')
 
 export default function ProductDetailScreen() {
@@ -54,10 +56,10 @@ export default function ProductDetailScreen() {
   }
 
   const highlightItems = [
-    { label: 'Display', value: product.highlights.display, icon: '📱' },
-    { label: 'Chipset', value: product.highlights.chipset, icon: '⚡' },
-    { label: 'Camera', value: product.highlights.camera, icon: '📸' },
-    { label: 'Battery', value: product.highlights.battery, icon: '🔋' },
+    { label: 'Display', value: product.highlights.display, Icon: Monitor },
+    { label: 'Chipset', value: product.highlights.chipset, Icon: Zap },
+    { label: 'Camera', value: product.highlights.camera, Icon: Camera },
+    { label: 'Battery', value: product.highlights.battery, Icon: Battery },
   ].filter(i => i.value)
 
   return (
@@ -98,7 +100,7 @@ export default function ProductDetailScreen() {
            <View style={styles.statsGrid}>
              {highlightItems.map(item => (
                <View key={item.label} style={styles.statCard}>
-                 <Text style={styles.statIcon}>{item.icon}</Text>
+                 <item.Icon size={24} color={Colors.primary} style={{ marginBottom: Spacing.sm }} />
                  <Text style={styles.statLabel}>{item.label}</Text>
                  <Text style={styles.statValue} numberOfLines={2}>{item.value}</Text>
                </View>
@@ -265,10 +267,6 @@ const styles = StyleSheet.create({
     borderColor: Colors.dark.border,
     padding: Spacing.lg,
     alignItems: 'center',
-  },
-  statIcon: {
-    fontSize: 24,
-    marginBottom: Spacing.sm,
   },
   statLabel: {
     fontSize: 10,

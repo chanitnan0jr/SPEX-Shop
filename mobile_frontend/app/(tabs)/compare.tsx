@@ -16,10 +16,29 @@ import {
   KeyboardAvoidingView,
 } from 'react-native'
 import { useRouter, useLocalSearchParams } from 'expo-router'
-import { BarChart3, Zap, Plus, X, Search, ChevronRight } from 'lucide-react-native'
+import { 
+  BarChart3, 
+  Zap, 
+  Plus, 
+  X, 
+  Search, 
+  ChevronRight, 
+  Cpu, 
+  Monitor, 
+  Camera, 
+  Battery, 
+  Database, 
+  Cpu as GpuIcon, 
+  Layers, 
+  Wifi, 
+  Radio,
+  Tag,
+  ShoppingBag
+} from 'lucide-react-native'
 import { Colors, Fonts, Spacing, Radius } from '../../lib/constants'
 import { getProducts, compareSpecs } from '../../lib/api'
 import { RadarFingerprint } from '../../components/RadarFingerprint'
+import { useCart } from '../../hooks/useCart'
 import type { Spec } from '../../types/spec'
 
 const { width: SCREEN_WIDTH } = Dimensions.get('window')
@@ -44,6 +63,7 @@ const DeviceListItem = memo(({ item, onSelect }: { item: Spec; onSelect: (d: Spe
 
 export default function CompareTabScreen() {
   const router = useRouter()
+  const { addToCart } = useCart()
   // Fixed 4-slot system to prevent shifting
   const [selectedDevices, setSelectedDevices] = useState<(Spec | null)[]>([null, null, null, null])
   const [activeSlotIndex, setActiveSlotIndex] = useState<number | null>(null)
@@ -55,6 +75,106 @@ export default function CompareTabScreen() {
 
   const { m1, m2, m3, m4 } = useLocalSearchParams()
   const initialLoadHandled = React.useRef(false)
+
+  // Table Structure Definition - Simplified for robustness
+  const TABLE_STRUCTURE = [
+    {
+      title: 'PERFORMANCE',
+      icon: <Cpu size={14} color={Colors.primary} />,
+      features: [
+        { label: 'OS', keys: ['Operating system', 'OS', 'Platform OS'] },
+        { label: 'CHIPSET', keys: ['Chipset', 'Processor'] },
+        { label: 'GPU', keys: ['GPU', 'Graphics'] },
+        { label: 'RAM', keys: ['RAM', 'Memory'] },
+        { label: 'STORAGE', keys: ['Storage', 'Internal Storage', 'ROM'] },
+      ]
+    },
+    {
+      title: 'DISPLAY',
+      icon: <Monitor size={14} color={Colors.primary} />,
+      features: [
+        { label: 'SIZE', keys: ['Screen size', 'Size', 'Display Size'] },
+        { label: 'RESOLUTION', keys: ['Resolution', 'Screen resolution', 'Display Resolution', 'Pixel density', 'Res'] },
+        { label: 'REFRESH', keys: ['Refresh rate', 'Hz', 'Display Refresh', 'Refresh'] },
+      ]
+    },
+    {
+      title: 'CAMERA',
+      icon: <Camera size={14} color={Colors.primary} />,
+      features: [
+        { label: 'MAIN', keys: ['Rear camera', 'Main Camera', 'Triple', 'Dual'] },
+        { label: 'SELFIE', keys: ['Front camera', 'Selfie camera', 'Single'] },
+      ]
+    },
+    {
+      title: 'POWER',
+      icon: <Battery size={14} color={Colors.primary} />,
+      features: [
+        { label: 'CAPACITY', keys: ['Battery capacity', 'Capacity', 'Battery'] },
+        { label: 'CHARGING', keys: ['Fast charging', 'Charging', 'Speed'] },
+      ]
+    },
+    {
+      title: 'CONNECTIVITY',
+      icon: <Wifi size={14} color={Colors.primary} />,
+      features: [
+        { label: 'NETWORK', keys: ['Network', 'Technology', 'Bands'] },
+        { label: 'USB', keys: ['USB', 'USB Type', 'Port'] },
+        { label: 'BLUETOOTH', keys: ['Bluetooth', 'BT'] },
+      ]
+    },
+    {
+      title: 'BUILD',
+      icon: <Layers size={14} color={Colors.primary} />,
+      features: [
+        { label: 'WEIGHT', keys: ['Weight', 'Body Weight'] },
+        { label: 'THICKNESS', keys: ['Thickness', 'Dimensions'] },
+        { label: 'MATERIAL', keys: ['Body material', 'Build'] },
+      ]
+    },
+    {
+      title: 'PRICING',
+      icon: <Tag size={14} color={Colors.primary} />,
+      features: [
+        { label: 'PRICE', keys: ['price_thb', 'Price'] },
+      ]
+    }
+  ]
+
+  // Helper to find spec value across multiple possible keys/sections
+  function getSpecValue(d: Spec | null, featureKeys: string[], label: string): string {
+    if (!d) return '-'
+    
+    // Special case for Price
+    if (label === 'PRICE' || featureKeys.includes('price_thb')) {
+      return d.price_thb ? `฿${d.price_thb.toLocaleString('th-TH')}` : '—'
+    }
+
+    const keysToSearch = [...(featureKeys || [])]
+    if (label) keysToSearch.push(label)
+
+    // Search through all sections and keys
+    for (const sectionName in d.spec_sections) {
+      const section = d.spec_sections[sectionName]
+      if (typeof section !== 'object' || section === null) continue
+      
+      for (const key in section) {
+        const lowerKey = key.toLowerCase()
+        if (keysToSearch.some(fk => lowerKey.includes(fk.toLowerCase()) || fk.toLowerCase().includes(lowerKey))) {
+          return section[key]
+        }
+      }
+    }
+    
+    // Fallback to highlights
+    for (const fk of keysToSearch) {
+      const lowerFk = fk.toLowerCase()
+      const highlightVal = (d.highlights as any)?.[lowerFk]
+      if (highlightVal) return highlightVal
+    }
+
+    return '-'
+  }
 
   // Load deep-linked devices on mount
   React.useEffect(() => {
@@ -113,7 +233,6 @@ export default function CompareTabScreen() {
   }
 
   const handleSelectDevice = useCallback((device: Spec) => {
-    // Check if device is already in any other slot
     if (selectedDevices.find(d => d?._id === device._id)) {
        setIsModalVisible(false)
        return
@@ -124,7 +243,6 @@ export default function CompareTabScreen() {
       if (activeSlotIndex !== null) {
         next[activeSlotIndex] = device
       } else {
-        // Fallback to first empty slot if index somehow missing
         const emptyIdx = next.findIndex(s => s === null)
         if (emptyIdx !== -1) next[emptyIdx] = device
       }
@@ -143,50 +261,74 @@ export default function CompareTabScreen() {
     )
   }, [allProducts, searchQuery])
 
-  // Radar Mapping Logic: Hardware to Normalized Scores (0.0 - 1.0)
-  // Aligned with AXES: ['VALUE', 'CPU', 'DISPLAY', 'BATTERY', 'MEMORY', 'CAMERA']
+  // Radar Mapping Logic (Relative Comparison Mode)
   const radarChartData = useMemo(() => {
     const activeDevices = comparisonData.filter((d): d is Spec => d !== null)
     if (activeDevices.length === 0) return null
 
-    const mapSpecToScore = (spec: Spec | null) => {
-      if (!spec) return [0, 0, 0, 0, 0, 0]
-      const h = spec.highlights
+    // Step 1: Extract Raw Metrics for all comparison slots
+    const deviceMetrics = comparisonData.map(d => {
+      if (!d) return [0, 0, 0, 0, 0, 0]
+      const h = d.highlights
       
-      // 1. VALUE (Price based - lower is better for value score)
-      const price = spec.price_thb || 30000
-      const value = Math.max(0.2, Math.min(1.0, 1 - (price / 60000))) // Simple heuristic
+      // PRICE (฿)
+      const price = d.price_thb || 0
       
-      // 2. CPU (Chipset performance)
-      const cpu = h.chipset?.match(/A17|Gen 3|D9300/i) ? 0.98 : 
-                  h.chipset?.match(/A16|Gen 2|D9200/i) ? 0.88 : 
-                  h.chipset?.match(/Gen 1|D9000/i) ? 0.78 : 0.6
+      // CPU (Score 0-1)
+      let cpu = 0.4
+      const chipset = h.chipset?.toUpperCase() || ''
+      if (chipset.match(/A1[78]|GEN 3|D9300|D9400/)) cpu = 0.98
+      else if (chipset.match(/A1[56]|GEN 2|D9200/)) cpu = 0.92
+      else if (chipset.match(/GEN 1|D9000|888|870|A14/)) cpu = 0.85
+      else if (chipset.match(/7+ GEN|D8000|865|A13/)) cpu = 0.78
+      else if (chipset.match(/6 GEN|D7000|G99|HELIOT/)) cpu = 0.68
+      else if (chipset.match(/4 GEN|D6000|SNAPDRAGON/)) cpu = 0.58
       
-      // 3. DISPLAY
-      const display = h.display?.match(/LTPO/i) ? 0.95 : 
-                      h.display?.match(/120Hz/i) ? 0.85 : 
-                      h.display?.match(/OLED|AMOLED/i) ? 0.75 : 0.6
-      
-      // 4. BATTERY (Capacity based)
-      const mah = parseInt(h.battery?.replace(/[^0-9]/g, '') || '4500')
-      const battery = Math.max(0.4, Math.min(1.0, mah / 5500))
-      
-      // 5. MEMORY (RAM based)
-      const ram = parseInt(h.ram?.replace(/[^0-9]/g, '') || '8')
-      const memory = Math.max(0.4, Math.min(1.0, ram / 16))
-      
-      // 6. CAMERA
-      const camera = h.camera?.match(/200MP|Leica|Hasselblad|Zeiss/i) ? 0.96 : 
-                     h.camera?.match(/108MP|50MP/i) ? 0.86 : 0.75
+      // DISPLAY (Score 0-1)
+      let display = 0.4
+      const displayStr = h.display?.toUpperCase() || ''
+      if (displayStr.includes('LTPO')) display = 0.95
+      else if (displayStr.includes('144HZ')) display = 0.92
+      else if (displayStr.includes('120HZ') || displayStr.includes('AMOLED') || displayStr.includes('OLED')) {
+        display = displayStr.includes('120HZ') ? 0.88 : 0.82
+      } else if (displayStr.includes('90HZ')) display = 0.72
+      else if (displayStr.includes('IPS') || displayStr.includes('LCD')) display = 0.62
 
-      return [value, cpu, display, battery, memory, camera]
+      // BATTERY (mAh)
+      const mahStr = h.battery?.split('|')[0] || ''
+      const battery = parseInt(mahStr.replace(/[^0-9]/g, '') || '4500')
+
+      // RAM (GB)
+      const ram = parseInt(h.ram?.replace(/[^0-9]/g, '') || '8')
+
+      // CAMERA (Score 0-1)
+      let camera = 0.4
+      const cameraStr = h.camera?.toUpperCase() || ''
+      if (cameraStr.match(/200MP|LEICA|HASSELBLAD|ZEISS/)) camera = 0.98
+      else if (cameraStr.match(/108MP|50MP/)) camera = 0.88
+      else if (cameraStr.match(/64MP|48MP/)) camera = 0.78
+      else if (cameraStr.includes('MP')) camera = 0.68
+
+      return [price, cpu, display, battery, ram, camera]
+    })
+
+    // Step 2: Find Maximum for each axis in the current set for normalization
+    const maxVals = [0, 1, 2, 3, 4, 5].map(axisIdx => {
+      const axisValues = deviceMetrics.map(m => m[axisIdx])
+      const max = Math.max(...axisValues)
+      return max > 0 ? max : 1 // Avoid division by zero
+    })
+
+    // Step 3: Map to normalized 0.0 - 1.0 scores
+    const normalize = (metrics: number[]) => {
+      return metrics.map((val, i) => Math.min(1.0, val / maxVals[i]))
     }
 
     return {
-      device1: mapSpecToScore(comparisonData[0]),
-      device2: mapSpecToScore(comparisonData[1]),
-      device3: mapSpecToScore(comparisonData[2]),
-      device4: mapSpecToScore(comparisonData[3]),
+      device1: normalize(deviceMetrics[0]),
+      device2: normalize(deviceMetrics[1]),
+      device3: normalize(deviceMetrics[2]),
+      device4: normalize(deviceMetrics[3]),
       label1: comparisonData[0]?.model || '',
       label2: comparisonData[1]?.model || '',
       label3: comparisonData[2]?.model || '',
@@ -198,36 +340,48 @@ export default function CompareTabScreen() {
     const activeDevices = comparisonData.filter((d): d is Spec => d !== null)
     if (activeDevices.length < 1) return null
 
-    const features = [
-       { key: 'CHIPSET', label: 'CHIPSET' },
-       { key: 'DISPLAY', label: 'DISPLAY' },
-       { key: 'RAM', label: 'MEMORY' },
-       { key: 'BATTERY', label: 'BATTERY' },
-       { key: 'CAMERA', label: 'CAMERA' },
-    ]
-
     return (
       <View style={styles.tableCard}>
+        {/* Sticky-like Header */}
         <View style={styles.tableHeader}>
-           <Text style={[styles.headerLabel, { textAlign: 'left', flex: 1.2 }]}>FEATURE</Text>
-           {comparisonData.map((d, i) => d && (
-             <Text key={d._id} numberOfLines={1} style={styles.headerLabel}>{d.model.split(' ')[0]}</Text>
+           <View style={styles.featureColumnHeader}>
+              <Text style={styles.headerLabel}>SPECIFICATION</Text>
+           </View>
+           {comparisonData.map((d, i) => (
+             <View key={d?._id || `empty-header-${i}`} style={styles.valueColumnHeader}>
+               {d ? (
+                 <Text numberOfLines={2} style={styles.headerValue}>{d.model}</Text>
+               ) : (
+                 <Text style={[styles.headerValue, { opacity: 0.2 }]}>-</Text>
+               )}
+             </View>
            ))}
         </View>
-        {features.map((f, idx) => (
-          <View key={f.key} style={[styles.tableRow, idx === features.length - 1 && styles.noBorder]}>
-             <Text style={styles.featureName}>{f.label}</Text>
-             {comparisonData.map((d, i) => {
-               if (!d) return <Text key={i + f.key} style={styles.featureValue}>-</Text>
-               const val = f.key === 'CHIPSET' ? d.highlights.chipset : 
-                           f.key === 'DISPLAY' ? d.highlights.display : 
-                           f.key === 'RAM' ? d.highlights.ram : 
-                           f.key === 'BATTERY' ? d.highlights.battery : 
-                           d.highlights.camera
-               return (
-                 <Text key={d._id + f.key} numberOfLines={2} style={styles.featureValue}>{val || '-'}</Text>
-               )
-             })}
+
+        {/* Categories */}
+        {TABLE_STRUCTURE.map((section, sIdx) => (
+          <View key={section.title}>
+            <View style={styles.categoryRow}>
+               <View style={styles.categoryIcon}>{section.icon}</View>
+               <Text style={styles.categoryTitle}>{section.title}</Text>
+            </View>
+            
+            {section.features.map((f, fIdx) => (
+              <View key={f.label} style={styles.tableRow}>
+                <View style={styles.featureNameCol}>
+                   <Text style={styles.featureName}>{f.label}</Text>
+                </View>
+                {comparisonData.map((d, dIdx) => {
+                  const val = getSpecValue(d, f.keys, f.label)
+                  
+                  return (
+                    <View key={d?._id ? d._id + f.label : `empty-${dIdx}-${f.label}`} style={styles.valueCol}>
+                       <Text numberOfLines={4} style={styles.featureValue}>{val}</Text>
+                    </View>
+                  )
+                })}
+              </View>
+            ))}
           </View>
         ))}
       </View>
@@ -239,11 +393,11 @@ export default function CompareTabScreen() {
       <ScrollView contentContainerStyle={styles.scrollContent} showsVerticalScrollIndicator={false}>
         <View style={styles.header}>
           <Text style={styles.tagline}>{'>_ SYSTEM ALPHA'}</Text>
-          <Text style={styles.title}>COMPARE SMARTPHONES</Text>
-          <Text style={styles.subtitle}>TECHNICAL BENCHMARKING DASHBOARD</Text>
+          <Text style={styles.title}>COMPARE DEVICES</Text>
+          <Text style={styles.subtitle}>HIGH-FIDELITY HARDWARE ANALYTICS</Text>
         </View>
 
-        {/* Device Selection Slots - 4 Slots Grid */}
+        {/* Device Selection Slots */}
         <View style={styles.deviceGrid}>
           {[0, 1, 2, 3].map((index) => {
             const device = selectedDevices[index]
@@ -260,7 +414,26 @@ export default function CompareTabScreen() {
                 {device ? (
                   <View style={styles.deviceInfo}>
                     <Image source={device.thumbnail_url ? { uri: device.thumbnail_url } : require('../../assets/devices/phone1.png')} style={styles.deviceImage} />
-                    <Text style={styles.deviceName} numberOfLines={2}>{device.model}</Text>
+                    <Text style={styles.deviceName} numberOfLines={1}>{device.model}</Text>
+                    <Text style={styles.devicePrice}>
+                      {device.price_thb ? `฿${device.price_thb.toLocaleString('th-TH')}` : '—'}
+                    </Text>
+                    
+                    {/* Add to Cart Shortcut */}
+                    <TouchableOpacity 
+                       onPress={() => addToCart({
+                         specId: (device as any)._id || device.model,
+                         brand: device.brand,
+                         model: device.model,
+                         price_thb: device.price_thb || 0,
+                         thumbnail_url: device.thumbnail_url
+                       })}
+                       style={styles.addToCartMini}
+                       activeOpacity={0.7}
+                    >
+                       <ShoppingBag size={12} color="#fff" />
+                    </TouchableOpacity>
+
                     <TouchableOpacity 
                        onPress={() => {
                          const next = [...selectedDevices]
@@ -269,12 +442,12 @@ export default function CompareTabScreen() {
                        }}
                        style={styles.removeBtn}
                     >
-                      <X size={12} color="#fff" />
+                      <X size={10} color="#fff" />
                     </TouchableOpacity>
                   </View>
                 ) : (
                   <View style={styles.addPlaceholder}>
-                    <Plus size={18} color={Colors.primary} />
+                    <Plus size={16} color={Colors.primary} />
                     <Text style={styles.addText}>ADD</Text>
                   </View>
                 )}
@@ -286,22 +459,16 @@ export default function CompareTabScreen() {
         {/* Selection Summary */}
         <View style={styles.summaryRow}>
           <View style={styles.summaryLabelGroup}>
-             <Text style={styles.summaryLabel}>SELECTED MODELS</Text>
-             <Text style={styles.summaryInstructions}>Choose up to 4 phones for side-by-side comparison.</Text>
+             <Text style={styles.summaryLabel}>HARDWARE STACK</Text>
+             <Text style={styles.summaryInstructions}>Comparing up to 4 models concurrently.</Text>
           </View>
           <View style={styles.countBadge}>
              <Text style={styles.countText}>{selectedDevices.filter(d => d !== null).length}/4</Text>
           </View>
         </View>
 
-        {/* Action Area */}
+        {/* Target Action Bar */}
         <View style={styles.actionArea}>
-           {selectedDevices.filter(d => d !== null).length === 0 && (
-             <View style={styles.emptySelectionBox}>
-                <Text style={styles.emptyText}>No models selected yet</Text>
-             </View>
-           )}
-           
            <TouchableOpacity 
              style={styles.searchBar} 
              onPress={() => {
@@ -310,15 +477,42 @@ export default function CompareTabScreen() {
                 setIsModalVisible(true)
              }}
            >
-              <Search size={16} color={Colors.dark.textMuted} />
+              <Search size={16} color={Colors.primary} />
               <Text style={styles.searchText}>
-                {isLoading ? 'Loading catalog...' : 'Search for a device...'}
+                {isLoading ? 'SYNCING DATABASE...' : 'SELECT DEVICE FOR COMPARISON'}
               </Text>
            </TouchableOpacity>
         </View>
 
-        {/* Device Selection Modal */}
-        <Modal
+        {/* Radar Chart Section */}
+        <View style={styles.radarSection}>
+          <Text style={styles.sectionTitle}>PERFORMANCE FINGERPRINT</Text>
+          <View style={styles.radarCard}>
+            <View style={styles.radarGlow} />
+            {radarChartData ? (
+               <RadarFingerprint data={radarChartData} />
+            ) : (
+              <View style={styles.radarPlaceholder}>
+                 <BarChart3 size={120} color={Colors.primary} strokeWidth={0.5} opacity={0.2} />
+                 <Text style={styles.radarLabel}>ANALYTICS ENGINE STANDBY</Text>
+              </View>
+            )}
+          </View>
+        </View>
+
+        {/* Comparison Table Section */}
+        <View style={styles.tableSection}>
+           <Text style={styles.sectionTitle}>TECHNICAL DATASHEET</Text>
+           {renderComparisonTable() || (
+             <View style={styles.tableCardEmpty}>
+                <Text style={styles.emptyText}>Select devices to initialize hardware comparison</Text>
+             </View>
+           )}
+        </View>
+      </ScrollView>
+
+      {/* Selection Modal */}
+      <Modal
           visible={isModalVisible}
           animationType="slide"
           transparent={true}
@@ -329,9 +523,9 @@ export default function CompareTabScreen() {
              behavior={Platform.OS === 'ios' ? 'padding' : undefined}
           >
              <View style={styles.modalContent}>
-               <View style={styles.modalHeader}>
+               <View style={styles.modalHeaderUnderline}>
                  <Text style={styles.modalTitle}>
-                   {activeSlotIndex !== null ? `SLOT ${activeSlotIndex + 1}` : 'SELECT DEVICE'} ({selectedDevices.filter(d => d !== null).length}/4)
+                   {activeSlotIndex !== null ? `SLOT ${activeSlotIndex + 1}` : 'SELECT DEVICE'}
                  </Text>
                  <TouchableOpacity onPress={() => {
                    setIsModalVisible(false)
@@ -342,10 +536,10 @@ export default function CompareTabScreen() {
                </View>
 
               <View style={styles.modalSearch}>
-                <Search size={18} color={Colors.dark.textMuted} />
+                <Search size={18} color={Colors.primary} />
                 <TextInput
                   style={styles.modalInput}
-                  placeholder="Search models or brands..."
+                  placeholder="Filter models..."
                   placeholderTextColor={Colors.dark.textMuted}
                   value={searchQuery}
                   onChangeText={setSearchQuery}
@@ -364,54 +558,13 @@ export default function CompareTabScreen() {
                   renderItem={({ item }) => (
                     <DeviceListItem item={item} onSelect={handleSelectDevice} />
                   )}
+                  style={styles.modalList}
                   removeClippedSubviews
-                  maxToRenderPerBatch={10}
-                  windowSize={5}
-                  ListEmptyComponent={
-                    <Text style={styles.emptySearchText}>No devices found matching "{searchQuery}"</Text>
-                  }
                 />
               )}
             </View>
           </KeyboardAvoidingView>
-        </Modal>
-
-        {/* Radar Chart Section */}
-        <View style={styles.radarSection}>
-          <Text style={styles.sectionTitle}>PERFORMANCE FINGERPRINT</Text>
-          <View style={styles.radarCard}>
-            <View style={styles.radarGlow} />
-            {radarChartData ? (
-               <RadarFingerprint data={radarChartData} />
-            ) : (
-              <View style={styles.radarContainer}>
-                 <BarChart3 size={160} color={Colors.primary} strokeWidth={0.5} opacity={0.3} />
-                 <View style={styles.radarOverlay}>
-                    <Text style={styles.radarLabel}>ANALYTICS ENGINE STANDBY</Text>
-                    <Zap size={14} color={Colors.primary} />
-                 </View>
-              </View>
-            )}
-            
-            {!radarChartData && (
-              <View style={styles.radarLegend}>
-                 <View style={styles.legendItem}><View style={[styles.dot, { backgroundColor: Colors.primary }]} /><Text style={styles.legendText}>HARDWARE SCORE</Text></View>
-                 <View style={styles.legendItem}><View style={[styles.dot, { backgroundColor: 'rgba(255,255,255,0.1)' }]} /><Text style={styles.legendText}>REFERENCE BASELINE</Text></View>
-              </View>
-            )}
-          </View>
-        </View>
-
-        {/* Comparison Table Section */}
-        <View style={styles.tableSection}>
-           <Text style={styles.sectionTitle}>HARDWARE COMPARISON</Text>
-           {renderComparisonTable() || (
-             <View style={styles.tableCard}>
-                <Text style={styles.emptyText}>Select devices to see hardware disparities</Text>
-             </View>
-           )}
-        </View>
-      </ScrollView>
+      </Modal>
     </SafeAreaView>
   )
 }
@@ -427,7 +580,6 @@ const styles = StyleSheet.create({
   header: {
     padding: Spacing.xl,
     paddingTop: 40,
-    alignItems: 'flex-start',
   },
   tagline: {
     fontSize: 9,
@@ -437,31 +589,29 @@ const styles = StyleSheet.create({
     marginBottom: 6,
   },
   title: {
-    fontSize: 28,
+    fontSize: 26,
     fontWeight: Fonts.weights.black,
     color: '#fff',
     letterSpacing: -0.5,
-    marginBottom: 4,
   },
   subtitle: {
     fontSize: 10,
     fontWeight: Fonts.weights.bold,
     color: Colors.dark.textMuted,
     letterSpacing: 1,
+    marginTop: 4,
   },
   deviceGrid: {
     flexDirection: 'row',
-    flexWrap: 'wrap',
     paddingHorizontal: Spacing.xl,
-    gap: 12,
-    marginTop: 20,
-    marginBottom: 40,
+    gap: 10,
+    marginBottom: 30,
   },
   slot: {
-    width: (SCREEN_WIDTH - Spacing.xl * 2 - 12 * 3) / 4,
-    aspectRatio: 1,
+    flex: 1,
+    aspectRatio: 0.85,
     backgroundColor: 'rgba(255,255,255,0.03)',
-    borderRadius: Radius.xl,
+    borderRadius: Radius.lg,
     borderWidth: 1,
     borderColor: 'rgba(255,255,255,0.08)',
     justifyContent: 'center',
@@ -470,56 +620,76 @@ const styles = StyleSheet.create({
   },
   slotEmpty: {
     borderStyle: 'dashed',
-    borderColor: 'rgba(20, 104, 255, 0.3)',
-    backgroundColor: 'rgba(20, 104, 255, 0.02)',
+    borderColor: 'rgba(20, 104, 255, 0.2)',
   },
   deviceInfo: {
+    flex: 1,
     width: '100%',
-    height: '100%',
+    padding: 6,
     alignItems: 'center',
     justifyContent: 'center',
-    padding: 4,
   },
   deviceImage: {
-    width: '60%',
+    width: '70%',
     height: '60%',
     resizeMode: 'contain',
-    marginBottom: 4,
+    marginBottom: 6,
   },
   deviceName: {
     fontSize: 8,
+    fontWeight: Fonts.weights.bold,
     color: '#fff',
     textAlign: 'center',
-    fontWeight: Fonts.weights.bold,
+    marginBottom: 2,
+  },
+  devicePrice: {
+    fontSize: 9,
+    fontWeight: Fonts.weights.black,
+    color: Colors.primary,
+    textAlign: 'center',
   },
   removeBtn: {
     position: 'absolute',
     top: 4,
     right: 4,
-    width: 18,
-    height: 18,
-    borderRadius: 9,
-    backgroundColor: 'rgba(255, 59, 48, 0.8)',
+    width: 16,
+    height: 16,
+    borderRadius: 8,
+    backgroundColor: 'rgba(255,59,48,0.2)',
     justifyContent: 'center',
     alignItems: 'center',
-    zIndex: 10,
+  },
+  addToCartMini: {
+    position: 'absolute',
+    top: 4,
+    left: 4,
+    width: 26,
+    height: 26,
+    borderRadius: 8,
+    backgroundColor: Colors.primary,
+    justifyContent: 'center',
+    alignItems: 'center',
+    shadowColor: Colors.primary,
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.3,
+    shadowRadius: 4,
+    elevation: 4,
   },
   addPlaceholder: {
     alignItems: 'center',
     gap: 4,
   },
   addText: {
-    fontSize: 7,
+    fontSize: 8,
     fontWeight: Fonts.weights.black,
-    color: Colors.primary,
-    letterSpacing: 0.5,
+    color: Colors.dark.textMuted,
   },
   summaryRow: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
     paddingHorizontal: Spacing.xl,
-    marginBottom: 24,
+    marginBottom: 20,
   },
   summaryLabelGroup: {
     flex: 1,
@@ -528,7 +698,6 @@ const styles = StyleSheet.create({
     fontSize: 10,
     fontWeight: Fonts.weights.black,
     color: '#fff',
-    letterSpacing: 1,
   },
   summaryInstructions: {
     fontSize: 9,
@@ -536,10 +705,10 @@ const styles = StyleSheet.create({
     marginTop: 2,
   },
   countBadge: {
-    backgroundColor: 'rgba(20, 104, 255, 0.15)',
+    backgroundColor: 'rgba(20, 104, 255, 0.1)',
     paddingHorizontal: 10,
     paddingVertical: 4,
-    borderRadius: Radius.full,
+    borderRadius: 12,
     borderWidth: 1,
     borderColor: 'rgba(20, 104, 255, 0.3)',
   },
@@ -552,106 +721,61 @@ const styles = StyleSheet.create({
     paddingHorizontal: Spacing.xl,
     marginBottom: 40,
   },
-  emptySelectionBox: {
-    padding: 24,
-    borderRadius: Radius.xl,
-    backgroundColor: 'rgba(255,255,255,0.02)',
-    borderWidth: 1,
-    borderColor: 'rgba(255,255,255,0.05)',
-    alignItems: 'center',
-    marginBottom: 16,
-  },
-  emptyText: {
-    fontSize: 12,
-    color: Colors.dark.textMuted,
-    fontWeight: Fonts.weights.medium,
-  },
   searchBar: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: 'rgba(255,255,255,0.05)',
-    padding: 16,
+    backgroundColor: 'rgba(255,255,255,0.04)',
+    padding: 18,
     borderRadius: Radius.xl,
     gap: 12,
     borderWidth: 1,
-    borderColor: 'rgba(255,255,255,0.08)',
+    borderColor: 'rgba(255,255,255,0.06)',
   },
   searchText: {
-    fontSize: 14,
-    color: Colors.dark.textMuted,
+    fontSize: 11,
+    fontWeight: Fonts.weights.black,
+    color: '#fff',
+    letterSpacing: 0.5,
   },
   radarSection: {
     marginBottom: 40,
   },
   sectionTitle: {
-    fontSize: 11,
+    fontSize: 10,
     fontWeight: Fonts.weights.black,
     color: '#fff',
     letterSpacing: 1.5,
     marginBottom: 16,
     paddingHorizontal: Spacing.xl,
-    opacity: 0.9,
   },
   radarCard: {
     marginHorizontal: Spacing.xl,
-    backgroundColor: 'rgba(10, 10, 15, 0.8)',
+    backgroundColor: 'rgba(10, 14, 24, 0.9)',
     borderRadius: Radius['2xl'],
     borderWidth: 1,
-    borderColor: 'rgba(255,255,255,0.08)',
-    padding: 20,
-    minHeight: 340,
-    justifyContent: 'center',
+    borderColor: 'rgba(255,255,255,0.06)',
+    padding: 24,
+    minHeight: 320,
     alignItems: 'center',
-    overflow: 'hidden',
+    justifyContent: 'center',
   },
   radarGlow: {
     position: 'absolute',
-    width: 200,
-    height: 200,
-    borderRadius: 100,
+    width: '100%',
+    height: '100%',
     backgroundColor: Colors.primary,
-    opacity: 0.05,
-    filter: 'blur(60px)',
+    opacity: 0.02,
+    borderRadius: Radius['2xl'],
   },
-  radarContainer: {
+  radarPlaceholder: {
     alignItems: 'center',
-    justifyContent: 'center',
-  },
-  radarOverlay: {
-    position: 'absolute',
-    alignItems: 'center',
-    gap: 6,
+    gap: 12,
   },
   radarLabel: {
-    fontSize: 10,
+    fontSize: 9,
     fontWeight: Fonts.weights.black,
     color: Colors.primary,
     letterSpacing: 1,
-    opacity: 0.6,
-  },
-  radarLegend: {
-    flexDirection: 'row',
-    gap: 20,
-    marginTop: 30,
-    paddingTop: 20,
-    borderTopWidth: 1,
-    borderTopColor: 'rgba(255,255,255,0.05)',
-  },
-  legendItem: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 8,
-  },
-  dot: {
-    width: 8,
-    height: 8,
-    borderRadius: 4,
-  },
-  legendText: {
-    fontSize: 9,
-    fontWeight: Fonts.weights.bold,
-    color: Colors.dark.textMuted,
-    letterSpacing: 0.5,
   },
   tableSection: {
     marginBottom: 60,
@@ -664,56 +788,106 @@ const styles = StyleSheet.create({
     borderColor: 'rgba(255,255,255,0.05)',
     overflow: 'hidden',
   },
+  tableCardEmpty: {
+    marginHorizontal: Spacing.xl,
+    padding: 40,
+    backgroundColor: 'rgba(255,255,255,0.01)',
+    borderRadius: Radius.xl,
+    borderWidth: 1,
+    borderColor: 'rgba(255,255,255,0.04)',
+    alignItems: 'center',
+  },
+  emptyText: {
+    fontSize: 12,
+    color: Colors.dark.textMuted,
+    textAlign: 'center',
+  },
   tableHeader: {
     flexDirection: 'row',
+    backgroundColor: 'rgba(20, 104, 255, 0.1)',
+    borderBottomWidth: 1,
+    borderBottomColor: 'rgba(20, 104, 255, 0.2)',
+  },
+  featureColumnHeader: {
+    flex: 1.2,
     padding: 12,
-    backgroundColor: 'rgba(255,255,255,0.03)',
-    borderBottomWidth:1,
-    borderBottomColor: 'rgba(255,255,255,0.05)',
+    justifyContent: 'center',
+  },
+  valueColumnHeader: {
+    flex: 1,
+    padding: 12,
+    alignItems: 'center',
+    justifyContent: 'center',
+    borderLeftWidth: 1,
+    borderLeftColor: 'rgba(255,255,255,0.05)',
   },
   headerLabel: {
-    flex: 1,
-    fontSize: 8,
+    fontSize: 9,
     fontWeight: Fonts.weights.black,
     color: Colors.primary,
+  },
+  headerValue: {
+    fontSize: 10,
+    fontWeight: Fonts.weights.black,
+    color: '#fff',
     textAlign: 'center',
+  },
+  categoryRow: {
+    flexDirection: 'row',
+    padding: 14,
+    backgroundColor: 'rgba(255,255,255,0.03)',
+    alignItems: 'center',
+    gap: 8,
+  },
+  categoryIcon: {
+    opacity: 0.8,
+  },
+  categoryTitle: {
+    fontSize: 10,
+    fontWeight: Fonts.weights.black,
+    color: Colors.primaryLight,
+    letterSpacing: 1,
   },
   tableRow: {
     flexDirection: 'row',
-    padding: 12,
     borderBottomWidth: 1,
     borderBottomColor: 'rgba(255,255,255,0.02)',
-    alignItems: 'center',
   },
-  noBorder: {
-    borderBottomWidth: 0,
+  featureNameCol: {
+    flex: 1.2,
+    padding: 12,
+    backgroundColor: 'rgba(255,255,255,0.01)',
   },
   featureName: {
-    flex: 1.2,
     fontSize: 9,
     fontWeight: Fonts.weights.bold,
     color: Colors.dark.textMuted,
   },
-  featureValue: {
+  valueCol: {
     flex: 1,
-    fontSize: 8,
+    padding: 12,
+    borderLeftWidth: 1,
+    borderLeftColor: 'rgba(255,255,255,0.03)',
+  },
+  featureValue: {
+    fontSize: 9,
     color: '#fff',
-    textAlign: 'center',
+    lineHeight: 14,
   },
   modalOverlay: {
     flex: 1,
-    backgroundColor: 'rgba(0,0,0,0.85)',
+    backgroundColor: 'rgba(0,0,0,0.8)',
     justifyContent: 'flex-end',
   },
   modalContent: {
-    backgroundColor: '#121218',
+    backgroundColor: '#0d1117',
     borderTopLeftRadius: Radius['3xl'],
     borderTopRightRadius: Radius['3xl'],
     height: '85%',
     borderWidth: 1,
     borderColor: 'rgba(255,255,255,0.1)',
   },
-  modalHeader: {
+  modalHeaderUnderline: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
@@ -725,7 +899,6 @@ const styles = StyleSheet.create({
     fontSize: 16,
     fontWeight: Fonts.weights.black,
     color: '#fff',
-    letterSpacing: 1,
   },
   modalSearch: {
     flexDirection: 'row',
@@ -739,12 +912,15 @@ const styles = StyleSheet.create({
   modalInput: {
     flex: 1,
     color: '#fff',
-    fontSize: 15,
+    fontSize: 14,
   },
   modalLoading: {
     flex: 1,
     justifyContent: 'center',
     alignItems: 'center',
+  },
+  modalList: {
+    flex: 1,
   },
   productItem: {
     flexDirection: 'row',
@@ -755,8 +931,8 @@ const styles = StyleSheet.create({
     borderBottomColor: 'rgba(255,255,255,0.03)',
   },
   productThumb: {
-    width: 60,
-    height: 60,
+    width: 50,
+    height: 50,
     resizeMode: 'contain',
     marginRight: 16,
   },
@@ -774,11 +950,5 @@ const styles = StyleSheet.create({
     fontSize: 14,
     fontWeight: Fonts.weights.bold,
     color: '#fff',
-  },
-  emptySearchText: {
-    textAlign: 'center',
-    color: Colors.dark.textMuted,
-    marginTop: 40,
-    paddingHorizontal: 40,
   },
 })

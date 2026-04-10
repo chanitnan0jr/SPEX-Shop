@@ -15,7 +15,7 @@ import { Colors, Fonts, Radius } from '../lib/constants'
 const AnimatedG = Animated.createAnimatedComponent(G)
 
 
-const AXES = ['VALUE', 'CPU', 'DISPLAY', 'BATTERY', 'RAM', 'CAMERA']
+const AXES = ['PRICE', 'CPU', 'DISPLAY', 'BATTERY', 'RAM', 'CAMERA']
 const SIZE = 240
 const CENTER = SIZE / 2
 const RADIUS = SIZE * 0.35
@@ -118,7 +118,7 @@ export const RadarFingerprint = ({ data }: RadarFingerprintProps) => {
           >
             <Text style={[styles.switchText, focusMode === 'all' && styles.switchTextActive]}>ALL</Text>
           </TouchableOpacity>
-          {labels.map((label, i) => label && (
+          {labels.map((label, i) => !!label && (
             <TouchableOpacity 
               key={i}
               onPress={() => setFocusMode(i)}
@@ -186,7 +186,7 @@ export const RadarFingerprint = ({ data }: RadarFingerprintProps) => {
 
       {/* Legend */}
       <View style={styles.legend}>
-        {labels.map((label, i) => label && (
+        {labels.map((label, i) => !!label && (
           <TouchableOpacity 
             key={i}
             style={[styles.legendItem, focusMode !== 'all' && focusMode !== i && { opacity: 0.3 }]}

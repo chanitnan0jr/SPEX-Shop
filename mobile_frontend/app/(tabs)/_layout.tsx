@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react'
-import { Tabs } from 'expo-router'
+import { Tabs, usePathname } from 'expo-router'
 import { Platform, StyleSheet, View, Text, TouchableOpacity } from 'react-native'
 import * as Haptics from 'expo-haptics'
 import Animated, { 
@@ -98,7 +98,7 @@ function TabIcon({ focused, label, Icon, isCenter, badgeCount }: TabIconProps) {
       </Text>
       {focused && <Animated.View style={styles.tabIndicator} />}
       
-      {badgeCount !== undefined && badgeCount > 0 && (
+      {badgeCount !== undefined && (
         <View style={styles.badgeContainer}>
           <Text style={styles.badgeText}>{badgeCount > 9 ? '9+' : badgeCount}</Text>
         </View>
@@ -110,6 +110,9 @@ function TabIcon({ focused, label, Icon, isCenter, badgeCount }: TabIconProps) {
 export default function TabsLayout() {
   const [chatbotVisible, setChatbotVisible] = useState(false)
   const { totalCount } = useCart()
+  const pathname = usePathname()
+
+  const isCartPage = pathname === '/cart' || pathname === '/(tabs)/cart'
 
   const handleTabPress = () => {
     if (Platform.OS !== 'web') {
@@ -199,15 +202,17 @@ export default function TabsLayout() {
       />
     </Tabs>
 
-    {/* Floating Chatbot Toggle */}
-    <TouchableOpacity 
-      style={styles.floatingChatBtn}
-      onPress={() => setChatbotVisible(true)}
-      activeOpacity={0.8}
-    >
-      <MessagesSquare size={28} color="#fff" />
-      <View style={styles.floatingChatGlow} />
-    </TouchableOpacity>
+    {/* Floating Chatbot Toggle - Hidden on Cart page to avoid blocking price */}
+    {!isCartPage && (
+      <TouchableOpacity 
+        style={styles.floatingChatBtn}
+        onPress={() => setChatbotVisible(true)}
+        activeOpacity={0.8}
+      >
+        <MessagesSquare size={28} color="#fff" />
+        <View style={styles.floatingChatGlow} />
+      </TouchableOpacity>
+    )}
 
     <ChatbotPopup 
       visible={chatbotVisible} 

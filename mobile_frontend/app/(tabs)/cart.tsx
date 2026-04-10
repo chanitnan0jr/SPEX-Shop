@@ -59,7 +59,7 @@ export default function CartScreen() {
       </Text>
       <TouchableOpacity
         style={styles.startShoppingBtn}
-        onPress={() => router.push('/(tabs)')}
+        onPress={() => router.push('/(tabs)/shop')}
       >
         <Text style={styles.startShoppingText}>START SHOPPING</Text>
       </TouchableOpacity>
@@ -238,17 +238,17 @@ const styles = StyleSheet.create({
     lineHeight: 20,
   },
   startShoppingBtn: {
-    backgroundColor: Colors.dark.surfaceStrong,
+    backgroundColor: 'rgba(255, 255, 255, 0.05)',
     borderWidth: 1,
-    borderColor: Colors.dark.border,
+    borderColor: 'rgba(255, 255, 255, 0.1)',
     borderRadius: Radius.full,
-    paddingVertical: 16,
-    paddingHorizontal: 32,
+    paddingVertical: 12,
+    paddingHorizontal: 24,
   },
   startShoppingText: {
-    color: Colors.dark.text,
+    color: '#fff',
     fontWeight: Fonts.weights.black,
-    fontSize: 12,
-    letterSpacing: 2,
+    fontSize: 10,
+    letterSpacing: 1.5,
   },
 })

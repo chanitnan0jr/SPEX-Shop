@@ -1,6 +1,6 @@
 import React, { memo } from 'react'
 import { View, Text, Image, TouchableOpacity, StyleSheet, Platform } from 'react-native'
-import { Plus, ShoppingCart, ShoppingBag } from 'lucide-react-native'
+import { Plus, ShoppingCart, ShoppingBag, Smartphone } from 'lucide-react-native'
 import { Colors, Fonts, Spacing, Radius } from '../lib/constants'
 import type { Spec } from '../types/spec'
 import { getImageSource } from '../lib/images'
@@ -55,7 +55,7 @@ export const ProductCard = memo(function ProductCard({
           />
           {!product.thumbnail_url && (
             <View style={[styles.placeholderContainer, { position: 'absolute' }]}>
-              <Text style={styles.placeholderIcon}>📱</Text>
+              <Smartphone size={32} color={Colors.dark.textMuted} strokeWidth={1} />
             </View>
           )}
         </View>
@@ -74,7 +74,7 @@ export const ProductCard = memo(function ProductCard({
              onPress={handleAddToCart}
              activeOpacity={0.7}
            >
-             <ShoppingBag size={18} color={Colors.dark.background} />
+             <ShoppingCart size={18} color={Colors.dark.background} />
            </TouchableOpacity>
         </View>
       </View>
@@ -160,10 +160,6 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     alignItems: 'center',
   },
-  placeholderIcon: {
-    fontSize: 30,
-    opacity: 0.2,
-  },
   footer: {
     flexDirection: 'row',
     justifyContent: 'space-between',
@@ -192,15 +188,15 @@ const styles = StyleSheet.create({
   },
   addToCartBtn: {
     backgroundColor: Colors.primary,
-    width: 38,
-    height: 38,
-    borderRadius: 19,
+    width: 44,
+    height: 44,
+    borderRadius: 12,
     justifyContent: 'center',
     alignItems: 'center',
     shadowColor: Colors.primary,
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.3,
-    shadowRadius: 6,
-    elevation: 4,
+    shadowOffset: { width: 0, height: 6 },
+    shadowOpacity: 0.4,
+    shadowRadius: 10,
+    elevation: 8,
   },
 })

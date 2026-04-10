@@ -27,9 +27,9 @@ export class TyphoonService {
     }
 
     const payload = {
-      model: TYPHOON_MODEL,
+      model: 'typhoon-v1.5-instruct', // Forcing stable model for reliability
       messages,
-      max_tokens: options.max_tokens || 512,
+      max_tokens: options.max_tokens || 1024,
       temperature: options.temperature ?? 0.1,
       response_format: options.response_format
     }
@@ -40,12 +40,18 @@ export class TyphoonService {
           'Authorization': `Bearer ${TYPHOON_API_KEY}`,
           'Content-Type': 'application/json'
         },
-        timeout: 15000 // 15s timeout
+        timeout: 60000 // 60s timeout for complex RAG
       })
       return response.data.choices[0].message.content
     } catch (error: any) {
-      const apiError = error.response?.data ? JSON.stringify(error.response.data) : error.message
-      console.error(`[typhoon] API Error: ${apiError}`)
+      if (error.response) {
+        // Detailed log of exactly what the API said
+        console.error('[typhoon] STATUS:', error.response.status)
+        console.error('[typhoon] DATA:', JSON.stringify(error.response.data, null, 2))
+        console.error('[typhoon] HEADERS:', JSON.stringify(error.response.headers, null, 2))
+      } else {
+        console.error('[typhoon] Error Request:', error.message)
+      }
       throw error
     }
   }
@@ -152,7 +158,7 @@ export async function detectIntent(query: string): Promise<SearchIntent> {
       { role: 'user', content: query }
     ]
 
-    const intent = (await (TyphoonService as any).request(payload, { max_tokens: 16, temperature: 0 }))
+    const intent = (await (TyphoonService as any).request(payload, { max_tokens: 256, temperature: 0 }))
       .trim().toLowerCase()
     
     const valid: SearchIntent[] = ['camera', 'battery', 'performance', 'budget', 'flagship']

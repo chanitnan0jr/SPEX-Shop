@@ -6,7 +6,7 @@ let rerankerModel: any = null
 async function getReranker() {
   if (!rerankerModel) {
     console.log('[reranker] loading bge-reranker-v2-m3...')
-    rerankerModel = await pipeline('text-classification', 'Xenova/bge-reranker-v2-m3')
+    rerankerModel = await pipeline('text-classification', 'Xenova/bge-reranker-base')
   }
   return rerankerModel
 }

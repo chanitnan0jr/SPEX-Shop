@@ -1,4 +1,4 @@
-import React, { useState } from 'react'
+import React, { useState, useEffect } from 'react'
 import {
   View,
   Text,
@@ -13,25 +13,58 @@ import {
   ActivityIndicator,
 } from 'react-native'
 import { useRouter, Link } from 'expo-router'
+import { ChevronLeft, Home, Mail, Lock, ArrowRight } from 'lucide-react-native'
+import Animated, { 
+  useSharedValue, 
+  useAnimatedStyle, 
+  withTiming, 
+  withDelay, 
+  Easing 
+} from 'react-native-reanimated'
+import { BlurView } from 'expo-blur'
 import { Colors, Fonts, Spacing, Radius } from '../../lib/constants'
 import { authLogin } from '../../lib/api'
 import { useAuth } from '../../context/auth'
 import { useCart } from '../../hooks/useCart'
 
-const { width: SCREEN_WIDTH } = Dimensions.get('window')
+const { width: SCREEN_WIDTH, height: SCREEN_HEIGHT } = Dimensions.get('window')
 
 export default function LoginScreen() {
   const router = useRouter()
   const { signIn } = useAuth()
   const { mergeLocalCart } = useCart()
+  
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
   const [isLoading, setIsLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
 
+  // Animation values
+  const formOpacity = useSharedValue(0)
+  const formTranslateY = useSharedValue(30)
+  const headerOpacity = useSharedValue(0)
+
+  useEffect(() => {
+    headerOpacity.value = withTiming(1, { duration: 800 })
+    formOpacity.value = withDelay(300, withTiming(1, { duration: 800 }))
+    formTranslateY.value = withDelay(300, withTiming(0, { 
+      duration: 800, 
+      easing: Easing.out(Easing.back(1.5)) 
+    }))
+  }, [])
+
+  const headerStyle = useAnimatedStyle(() => ({
+    opacity: headerOpacity.value,
+  }))
+
+  const formStyle = useAnimatedStyle(() => ({
+    opacity: formOpacity.value,
+    transform: [{ translateY: formTranslateY.value }],
+  }))
+
   const handleLogin = async () => {
     if (!email.trim() || !password) {
-      setError('Please enter your email and password.')
+      setError('Credentials required.')
       return
     }
     setError(null)
@@ -39,11 +72,10 @@ export default function LoginScreen() {
     try {
       const { user, accessToken, refreshToken } = await authLogin(email.trim(), password)
       await signIn(accessToken, refreshToken, { id: user.id, email: user.email, name: user.name })
-      // Sync guest cart to account
       await mergeLocalCart()
       router.replace('/(tabs)')
     } catch (err: any) {
-      const msg = err?.response?.data?.error ?? 'Login failed. Please try again.'
+      const msg = err?.response?.data?.error ?? 'Access denied. Verify credentials.'
       setError(msg)
     } finally {
       setIsLoading(false)
@@ -51,219 +83,326 @@ export default function LoginScreen() {
   }
 
   return (
-    <SafeAreaView style={styles.container}>
+    <View style={styles.container}>
       <StatusBar barStyle="light-content" />
-      <KeyboardAvoidingView
-        style={styles.flex}
-        behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
-      >
-        <View style={styles.content}>
-          {/* Top Decorative Glow */}
-          <View style={styles.topGlow} />
+      
+      {/* Background Layer: Deep Cyberpunk Architecture */}
+      <View style={styles.bgWrapper}>
+        <View style={styles.radialGlow1} />
+        <View style={styles.radialGlow2} />
+        <View style={styles.gridOverlay} />
+      </View>
 
-          <View style={styles.header}>
-            <Text style={styles.tagline}>SYSTEM ACCESS</Text>
-            <Text style={styles.title}>
-              Welcome{'\n'}
-              <Text style={styles.titleAccent}>Back.</Text>
-            </Text>
-          </View>
-
-          <View style={styles.form}>
-            {error && (
-              <View style={styles.errorBox}>
-                <Text style={styles.errorText}>{error}</Text>
-              </View>
-            )}
-
-            <View style={styles.inputContainer}>
-              <Text style={styles.inputLabel}>EMAIL ADDRESS</Text>
-              <TextInput
-                style={styles.input}
-                placeholder="name@example.com"
-                placeholderTextColor={Colors.dark.textMuted}
-                value={email}
-                onChangeText={setEmail}
-                autoCapitalize="none"
-                keyboardType="email-address"
-                autoComplete="email"
-                editable={!isLoading}
-              />
-            </View>
-
-            <View style={styles.inputContainer}>
-              <Text style={styles.inputLabel}>PASSWORD</Text>
-              <TextInput
-                style={styles.input}
-                placeholder="••••••••"
-                placeholderTextColor={Colors.dark.textMuted}
-                value={password}
-                onChangeText={setPassword}
-                secureTextEntry
-                editable={!isLoading}
-              />
-            </View>
-
-            <TouchableOpacity
-              style={[styles.loginButton, isLoading && styles.loginButtonDisabled]}
-              onPress={handleLogin}
-              activeOpacity={0.8}
-              disabled={isLoading}
-            >
-              {isLoading ? (
-                <ActivityIndicator color={Colors.dark.background} />
-              ) : (
-                <Text style={styles.loginButtonText}>SIGN IN</Text>
-              )}
-            </TouchableOpacity>
-
-            <View style={styles.footer}>
-              <Text style={styles.footerText}>Don't have an account? </Text>
-              <Link href="/auth/register" asChild>
-                <TouchableOpacity>
-                  <Text style={styles.linkText}>Create one</Text>
-                </TouchableOpacity>
-              </Link>
-            </View>
-          </View>
-
-          {/* Bottom subtle glow */}
-          <View style={styles.bottomGlow} />
+      <SafeAreaView style={styles.safe}>
+        {/* Modern Navbar */}
+        <View style={styles.navBar}>
+          <TouchableOpacity onPress={() => router.back()} style={styles.navBtn}>
+            <ChevronLeft size={20} color="#fff" />
+          </TouchableOpacity>
+          <TouchableOpacity onPress={() => router.replace('/(tabs)')} style={styles.navBtn}>
+            <Home size={18} color="#fff" />
+          </TouchableOpacity>
         </View>
-      </KeyboardAvoidingView>
-    </SafeAreaView>
+
+        <KeyboardAvoidingView
+          style={styles.flex}
+          behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+        >
+          <View style={styles.content}>
+            <Animated.View style={[styles.header, headerStyle]}>
+              <View style={styles.badge}>
+                <Text style={styles.badgeText}>SECURE TERMINAL V4.2</Text>
+              </View>
+              <Text style={styles.title}>SIGN <Text style={styles.titleAccent}>IN.</Text></Text>
+              <Text style={styles.subtitle}>Unlock professional hardware analytics and marketplace synchronization.</Text>
+            </Animated.View>
+
+            <Animated.View style={[styles.formWrapper, formStyle]}>
+               <BlurView intensity={20} tint="dark" style={styles.glassCard}>
+                  {error && (
+                    <View style={styles.errorPill}>
+                      <Text style={styles.errorText}>{error.toUpperCase()}</Text>
+                    </View>
+                  )}
+
+                  <View style={styles.inputStack}>
+                    <View style={styles.inputRow}>
+                      <Mail size={16} color={Colors.primary} />
+                      <TextInput
+                        style={styles.input}
+                        placeholder="TERMINAL_ID (EMAIL)"
+                        placeholderTextColor="rgba(255,255,255,0.3)"
+                        value={email}
+                        onChangeText={setEmail}
+                        autoCapitalize="none"
+                        keyboardType="email-address"
+                        editable={!isLoading}
+                      />
+                    </View>
+
+                    <View style={styles.inputRowHeader}>
+                       <Text style={styles.label}>PASSWORD</Text>
+                       <TouchableOpacity><Text style={styles.forgotText}>FORGOT?</Text></TouchableOpacity>
+                    </View>
+                    <View style={styles.inputRow}>
+                      <Lock size={16} color={Colors.primary} />
+                      <TextInput
+                        style={styles.input}
+                        placeholder="••••••••"
+                        placeholderTextColor="rgba(255,255,255,0.3)"
+                        value={password}
+                        onChangeText={setPassword}
+                        secureTextEntry
+                        editable={!isLoading}
+                      />
+                    </View>
+                  </View>
+
+                  <TouchableOpacity
+                    style={[styles.actionBtn, isLoading && styles.btnDisabled]}
+                    onPress={handleLogin}
+                    activeOpacity={0.8}
+                    disabled={isLoading}
+                  >
+                    {isLoading ? (
+                      <ActivityIndicator color="#fff" />
+                    ) : (
+                      <>
+                        <Text style={styles.btnText}>SIGN IN</Text>
+                        <ArrowRight size={18} color="#fff" />
+                      </>
+                    )}
+                  </TouchableOpacity>
+               </BlurView>
+
+               <View style={styles.registerPrompt}>
+                 <Text style={styles.promptText}>NO TERMINAL ACCESS?</Text>
+                 <Link href="/auth/register" asChild>
+                   <TouchableOpacity style={styles.registerBtn}>
+                     <Text style={styles.registerBtnText}>CREATE ACCOUNT</Text>
+                   </TouchableOpacity>
+                 </Link>
+               </View>
+            </Animated.View>
+          </View>
+        </KeyboardAvoidingView>
+      </SafeAreaView>
+    </View>
   )
 }
 
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: Colors.dark.background,
+    backgroundColor: '#05070a',
+  },
+  bgWrapper: {
+    ...StyleSheet.absoluteFillObject,
+    overflow: 'hidden',
+  },
+  radialGlow1: {
+    position: 'absolute',
+    top: -150,
+    right: -100,
+    width: 400,
+    height: 400,
+    borderRadius: 200,
+    backgroundColor: 'rgba(20, 104, 255, 0.15)',
+    filter: Platform.OS === 'web' ? 'blur(100px)' : undefined, // Native uses blur radius in another way but we can simulate with layers
+  },
+  radialGlow2: {
+    position: 'absolute',
+    bottom: -100,
+    left: -100,
+    width: 350,
+    height: 350,
+    borderRadius: 175,
+    backgroundColor: 'rgba(20, 104, 255, 0.08)',
+  },
+  gridOverlay: {
+    ...StyleSheet.absoluteFillObject,
+    opacity: 0.03,
+    // Grid pattern simulation
+    borderWidth: 0.5,
+    borderColor: '#fff',
+  },
+  safe: {
+    flex: 1,
   },
   flex: {
     flex: 1,
   },
+  navBar: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    paddingHorizontal: Spacing.xl,
+    paddingTop: 10,
+    height: 60,
+    alignItems: 'center',
+  },
+  navBtn: {
+    width: 42,
+    height: 42,
+    borderRadius: 14,
+    backgroundColor: 'rgba(255,255,255,0.05)',
+    justifyContent: 'center',
+    alignItems: 'center',
+    borderWidth: 1,
+    borderColor: 'rgba(255,255,255,0.08)',
+  },
   content: {
     flex: 1,
     paddingHorizontal: Spacing.xl,
-    justifyContent: 'center',
-    position: 'relative',
-    overflow: 'hidden',
-  },
-  topGlow: {
-    position: 'absolute',
-    top: -100,
-    right: -50,
-    width: 300,
-    height: 300,
-    backgroundColor: 'rgba(20, 104, 255, 0.1)',
-    borderRadius: Radius.full,
-  },
-  bottomGlow: {
-    position: 'absolute',
-    bottom: -150,
-    left: -100,
-    width: 400,
-    height: 400,
-    backgroundColor: 'rgba(16, 185, 129, 0.05)',
-    borderRadius: Radius.full,
+    paddingTop: 20,
   },
   header: {
-    marginBottom: Spacing['4xl'],
+    marginBottom: 40,
   },
-  tagline: {
-    fontSize: 10,
+  badge: {
+    alignSelf: 'flex-start',
+    backgroundColor: 'rgba(20, 104, 255, 0.1)',
+    paddingHorizontal: 10,
+    paddingVertical: 4,
+    borderRadius: 6,
+    borderWidth: 1,
+    borderColor: 'rgba(20, 104, 255, 0.2)',
+    marginBottom: 16,
+  },
+  badgeText: {
+    fontSize: 8,
     fontWeight: Fonts.weights.black,
-    color: Colors.primary,
-    letterSpacing: 4,
-    marginBottom: Spacing.sm,
+    color: Colors.primaryLight,
+    letterSpacing: 1.5,
   },
   title: {
-    fontSize: 48,
-    fontWeight: Fonts.weights.bold,
-    color: Colors.dark.text,
-    lineHeight: 52,
-    letterSpacing: -1.5,
+    fontSize: 56,
+    fontWeight: Fonts.weights.black,
+    color: '#fff',
+    letterSpacing: -2,
+    lineHeight: 60,
   },
   titleAccent: {
-    color: Colors.primaryLight,
+    color: Colors.primary,
   },
-  form: {
-    width: '100%',
+  subtitle: {
+    fontSize: 14,
+    color: Colors.dark.textSecondary,
+    marginTop: 16,
+    lineHeight: 22,
+    maxWidth: 280,
+    opacity: 0.7,
   },
-  errorBox: {
+  formWrapper: {
+    flex: 1,
+  },
+  glassCard: {
+    borderRadius: Radius['3xl'],
+    padding: 24,
+    borderWidth: 1,
+    borderColor: 'rgba(255,255,255,0.1)',
+    overflow: 'hidden',
+    backgroundColor: 'rgba(255,255,255,0.02)',
+  },
+  errorPill: {
     backgroundColor: 'rgba(239, 68, 68, 0.1)',
     borderWidth: 1,
-    borderColor: 'rgba(239, 68, 68, 0.3)',
-    borderRadius: Radius.lg,
-    paddingVertical: 12,
-    paddingHorizontal: Spacing.lg,
-    marginBottom: Spacing.xl,
+    borderColor: 'rgba(239, 68, 68, 0.2)',
+    borderRadius: 8,
+    padding: 10,
+    marginBottom: 20,
+    alignItems: 'center',
   },
   errorText: {
-    color: '#ef4444',
-    fontSize: Fonts.sizes.sm,
-    fontWeight: Fonts.weights.medium,
-  },
-  inputContainer: {
-    marginBottom: Spacing.xl,
-  },
-  inputLabel: {
     fontSize: 9,
     fontWeight: Fonts.weights.black,
-    color: Colors.dark.textMuted,
-    letterSpacing: 2,
-    marginBottom: Spacing.sm,
+    color: '#ef4444',
+    letterSpacing: 1,
+  },
+  inputStack: {
+    gap: 20,
+    marginBottom: 32,
+  },
+  inputRowHeader: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginBottom: -12,
+  },
+  label: {
+    fontSize: 9,
+    fontWeight: Fonts.weights.black,
+    color: 'rgba(255,255,255,0.4)',
+    letterSpacing: 1.5,
     paddingLeft: 4,
   },
-  input: {
-    backgroundColor: Colors.dark.surfaceStrong,
-    borderRadius: Radius.xl,
-    paddingVertical: 16,
-    paddingHorizontal: Spacing.lg,
-    color: Colors.dark.text,
-    fontSize: Fonts.sizes.md,
-    fontWeight: Fonts.weights.semibold,
-    borderWidth: 1,
-    borderColor: Colors.dark.border,
+  forgotText: {
+    fontSize: 9,
+    fontWeight: Fonts.weights.bold,
+    color: Colors.primaryLight,
   },
-  loginButton: {
-    backgroundColor: Colors.dark.text,
-    borderRadius: Radius.full,
-    paddingVertical: 20,
+  inputRow: {
+    flexDirection: 'row',
     alignItems: 'center',
-    marginTop: Spacing.lg,
-    ...Platform.select({
-      ios: {
-        shadowColor: '#fff',
-        shadowOffset: { width: 0, height: 4 },
-        shadowOpacity: 0.1,
-        shadowRadius: 10,
-      },
-    }),
+    backgroundColor: 'rgba(255,255,255,0.04)',
+    borderRadius: 16,
+    paddingHorizontal: 16,
+    borderWidth: 1,
+    borderColor: 'rgba(255,255,255,0.06)',
   },
-  loginButtonText: {
-    color: Colors.dark.background,
-    fontWeight: Fonts.weights.black,
-    fontSize: 14,
-    letterSpacing: 2,
+  input: {
+    flex: 1,
+    paddingVertical: 18,
+    paddingHorizontal: 12,
+    color: '#fff',
+    fontSize: 15,
+    fontWeight: Fonts.weights.semibold,
   },
-  loginButtonDisabled: {
-    opacity: 0.6,
-  },
-  footer: {
+  actionBtn: {
+    backgroundColor: Colors.primary,
+    borderRadius: 18,
+    paddingVertical: 20,
     flexDirection: 'row',
     justifyContent: 'center',
-    marginTop: Spacing['2xl'],
+    alignItems: 'center',
+    gap: 12,
+    shadowColor: Colors.primary,
+    shadowOffset: { width: 0, height: 10 },
+    shadowOpacity: 0.3,
+    shadowRadius: 15,
+    elevation: 8,
+  },
+  btnText: {
+    color: '#fff',
+    fontWeight: Fonts.weights.black,
+    fontSize: 12,
+    letterSpacing: 1,
+  },
+  btnDisabled: {
+    opacity: 0.6,
+  },
+  registerPrompt: {
+    marginTop: 40,
     alignItems: 'center',
   },
-  footerText: {
-    color: Colors.dark.textMuted,
-    fontSize: Fonts.sizes.sm,
-  },
-  linkText: {
-    color: Colors.primaryLight,
+  promptText: {
+    fontSize: 10,
     fontWeight: Fonts.weights.bold,
-    fontSize: Fonts.sizes.sm,
+    color: 'rgba(255,255,255,0.3)',
+    letterSpacing: 1,
+    marginBottom: 12,
+  },
+  registerBtn: {
+    paddingVertical: 12,
+    paddingHorizontal: 32,
+    borderRadius: 12,
+    borderWidth: 1,
+    borderColor: 'rgba(255,255,255,0.1)',
+    backgroundColor: 'rgba(255,255,255,0.03)',
+  },
+  registerBtnText: {
+    color: '#fff',
+    fontWeight: Fonts.weights.black,
+    fontSize: 11,
+    letterSpacing: 1,
   },
 })

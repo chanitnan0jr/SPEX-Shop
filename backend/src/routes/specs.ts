@@ -8,6 +8,7 @@ router.get('/models', async (req: Request, res: Response) => {
     const models = await SpecModel.distinct('model')
     res.json({ count: models.length, models: models.sort() })
   } catch (err) {
+    console.error('[specs] Failed to fetch models:', err)
     res.status(500).json({ error: 'Failed to fetch models' })
   }
 })
