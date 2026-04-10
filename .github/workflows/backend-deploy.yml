@@ -35,13 +35,11 @@ jobs:
           cp backend/package-lock.json backend/deploy/
           # Copy .env.example as .env if needed, or rely on Azure App Settings (preferred)
 
-      - name: 'Deploy to Azure Web App'
-        uses: azure/webapps-deploy@v2
+      - name: 'Set Azure App Settings'
+        uses: azure/appservice-settings@v1
         with:
           app-name: Specbot-backend
           publish-profile: ${{ secrets.AZURE_WEBAPP_PUBLISH_PROFILE }}
-          package: backend/deploy
-          # FORCE UNLOCK: This tells Azure to stop building and just run the zip
           app-settings-json: |
             [
               {
@@ -55,3 +53,10 @@ jobs:
                 "slotSetting": false
               }
             ]
+
+      - name: 'Deploy to Azure Web App'
+        uses: azure/webapps-deploy@v2
+        with:
+          app-name: Specbot-backend
+          publish-profile: ${{ secrets.AZURE_WEBAPP_PUBLISH_PROFILE }}
+          package: backend/deploy
