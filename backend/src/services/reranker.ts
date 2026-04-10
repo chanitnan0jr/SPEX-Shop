@@ -2,11 +2,12 @@ import { pipeline } from '@xenova/transformers'
 import type { SpecResult } from './retriever'
 
 let rerankerModel: any = null
+const MODEL_NAME = 'Xenova/bge-reranker-v2-m3'
 
 async function getReranker() {
   if (!rerankerModel) {
-    console.log('[reranker] loading bge-reranker-v2-m3...')
-    rerankerModel = await pipeline('text-classification', 'Xenova/bge-reranker-base')
+    console.log(`[reranker] loading ${MODEL_NAME}...`)
+    rerankerModel = await pipeline('text-classification', MODEL_NAME)
   }
   return rerankerModel
 }

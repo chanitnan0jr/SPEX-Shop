@@ -17,30 +17,7 @@ import ordersRouter from './routes/orders'
 
 const app = express()
 
-// Robust CORS Configuration
-const allowedOrigins = [
-  'http://localhost:3000', // Web Frontend
-  'http://localhost:8081', // Expo Web
-  process.env.FRONTEND_URL, // Production Web
-  process.env.MOBILE_ORIGIN, // Physical Mobile Device IP
-].filter(Boolean) as string[]
-
-app.use(cors({
-  origin: true, // Emergency Bypass: Allow all origins
-  credentials: true,
-  methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH', 'OPTIONS'],
-  allowedHeaders: ['Content-Type', 'Authorization']
-}))
-
-// Log incoming origin for future whitelisting
-app.use((req, res, next) => {
-  const origin = req.headers.origin
-  if (origin) {
-    console.log(`[cors-debug] Request from: ${origin}`)
-    res.setHeader('X-Debug-Origin', origin)
-  }
-  next()
-})
+app.use(cors())
 app.use(express.json())
 app.use(rateLimiter)
 

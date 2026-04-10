@@ -27,9 +27,9 @@ export class TyphoonService {
     }
 
     const payload = {
-      model: 'typhoon-v1.5-instruct', // Forcing stable model for reliability
+      model: TYPHOON_MODEL,
       messages,
-      max_tokens: options.max_tokens || 1024,
+      max_tokens: options.max_tokens || 512,
       temperature: options.temperature ?? 0.1,
       response_format: options.response_format
     }
