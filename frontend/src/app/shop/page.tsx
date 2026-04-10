@@ -34,16 +34,39 @@ export default function ShopPage() {
 
   const brands = ['All', 'Apple', 'Samsung', 'Xiaomi', 'Vivo', 'Oppo', 'Google']
 
+  const containerVariants = {
+    hidden: { opacity: 0 },
+    visible: { 
+      opacity: 1,
+      transition: {
+        staggerChildren: 0.1,
+        delayChildren: 0.1
+      }
+    }
+  } as const
+
+  const itemVariants = {
+    hidden: { opacity: 0, y: 20 },
+    visible: { 
+      opacity: 1, 
+      y: 0,
+      transition: {
+        type: "spring",
+        stiffness: 100,
+        damping: 15
+      }
+    }
+  } as const
+
   return (
     <motion.div 
-      initial={{ opacity: 0, y: 20 }}
-      animate={{ opacity: 1, y: 0 }}
-      transition={{ duration: 0.5 }}
-      className="min-h-screen bg-background text-foreground p-6 md:p-12"
+      variants={containerVariants}
+      initial="hidden"
+      animate="visible"
+      className="min-h-screen bg-transparent text-foreground p-8 lg:p-12 mb-safe"
     >
-      {/* Search & Filter Header */}
       <div className="max-w-7xl mx-auto space-y-8 mb-12">
-        <header className="flex flex-col md:flex-row md:items-end justify-between gap-6">
+        <motion.header variants={itemVariants} className="flex flex-col md:flex-row md:items-end justify-between gap-6">
           <div className="space-y-4">
             <div className="flex items-center gap-2 text-[11px] font-black uppercase tracking-[0.3em] text-sky-500">
               <ShoppingBag className="h-3.5 w-3.5" />
@@ -69,10 +92,9 @@ export default function ShopPage() {
               />
             </div>
           </div>
-        </header>
+        </motion.header>
 
-        {/* Brand Bar */}
-        <div className="flex flex-wrap gap-2 pb-4">
+        <motion.div variants={itemVariants} className="flex flex-wrap gap-2 pb-4">
           {brands.map(b => (
             <button
               key={b}
@@ -86,11 +108,10 @@ export default function ShopPage() {
               {b}
             </button>
           ))}
-        </div>
+        </motion.div>
       </div>
 
-      {/* Product Grid */}
-      <div className="max-w-7xl mx-auto">
+      <motion.div variants={itemVariants} className="max-w-7xl mx-auto">
         {loading ? (
           <div className="flex flex-col items-center justify-center py-40 space-y-4">
             <Cpu className="h-12 w-12 text-cyan-500 animate-spin" />
@@ -116,7 +137,7 @@ export default function ShopPage() {
             <p className="text-slate-500 font-bold uppercase tracking-widest">No matching hardware found in sector</p>
           </div>
         )}
-      </div>
+      </motion.div>
     </motion.div>
   )
 }
@@ -128,7 +149,7 @@ function ProductCard({ product, onAdd }: { product: Spec, onAdd: () => void }) {
       animate={{ opacity: 1, y: 0 }}
       exit={{ opacity: 0, scale: 0.95 }}
       whileHover={{ y: -8 }}
-      className="group glass-card rounded-[2.5rem] p-6 hover:border-cyan-500/30 transition-all duration-500 overflow-hidden relative"
+      className="group rounded-3xl border border-slate-200/50 bg-white/50 dark:border-white/5 dark:bg-white/5 backdrop-blur-xl shadow-xl p-6 hover:border-sky-500/30 transition-all duration-500 overflow-hidden relative"
     >
       {/* Holographic Background Effect */}
       <div className="absolute top-0 right-0 w-32 h-32 bg-cyan-500/5 rounded-full blur-3xl opacity-0 group-hover:opacity-100 transition-opacity" />

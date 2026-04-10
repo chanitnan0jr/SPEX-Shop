@@ -29,15 +29,15 @@ export function ChatBox() {
   const { language } = useUiPreferences()
   const quickPrompts = language === 'en'
     ? [
-        'Strong battery mid-range',
-        'Compare S21 vs S22',
-        '12GB RAM models',
-      ]
+      'Strong battery mid-range',
+      'Compare S21 vs S22',
+      '12GB RAM models',
+    ]
     : [
-        'แบตอึด ราคากลางๆ',
-        'เทียบ S21 vs S22',
-        'รุ่นที่มี RAM 12GB',
-      ]
+      'แบตอึด ราคากลางๆ',
+      'เทียบ S21 vs S22',
+      'รุ่นที่มี RAM 12GB',
+    ]
 
   const [sessions, setSessions] = useState<ChatSession[]>([])
   const [activeSessionId, setActiveSessionId] = useState<string | null>(null)
@@ -131,7 +131,7 @@ export function ChatBox() {
         }
       })
   }, [activeSessionId, isLoaded])
-  
+
   // Auto-collapse header when messages start flowing
   useEffect(() => {
     if (messages.length > 1 && isHeaderExpanded) {
@@ -143,11 +143,11 @@ export function ChatBox() {
   useEffect(() => {
     if (isLoaded && activeSessionId && messages.length > 0) {
       localStorage.setItem(`specbot_messages_${activeSessionId}`, JSON.stringify(messages))
-      
+
       // Update session title if it's still default
       const session = sessions.find(s => s.id === activeSessionId)
       const firstUserMsg = messages.find(m => m.role === 'user')
-      
+
       if (session && firstUserMsg && session.title.includes(pickText(language, { en: 'Conversation', th: 'การสนทนา' }))) {
         const newTitle = firstUserMsg.content.slice(0, 30) + (firstUserMsg.content.length > 30 ? '...' : '')
         const updatedSessions = sessions.map(s => s.id === activeSessionId ? { ...s, title: newTitle } : s)
@@ -176,7 +176,7 @@ export function ChatBox() {
     const updatedSessions = sessions.filter(s => s.id !== id)
     localStorage.removeItem(`specbot_messages_${id}`)
     deleteChatHistoryApi(id).catch(err => console.error('[chat] delete history error:', err))
-    
+
     if (updatedSessions.length === 0) {
       // Re-initialize if all deleted
       const newId = Date.now().toString()
@@ -251,7 +251,7 @@ export function ChatBox() {
       await submitFeedbackApi({
         sessionId: activeSessionId,
         messageId: messageId,
-        query: messages.find((m, idx) => messages[idx+1]?.id === messageId)?.content || '',
+        query: messages.find((m, idx) => messages[idx + 1]?.id === messageId)?.content || '',
         answer: msg.content,
         rating: rating
       })
@@ -288,7 +288,7 @@ export function ChatBox() {
     <section className="relative bg-white dark:bg-slate-950 overflow-hidden flex-1 flex flex-col h-full rounded-none border-0 ring-0 pb-safe">
       <div className="surface-panel border-b border-slate-200/50 dark:border-white/5 text-slate-900 dark:text-white">
         <div className="flex items-center justify-between px-5 pt-8 pb-4 md:px-6">
-          <button 
+          <button
             onClick={() => setIsHeaderExpanded(!isHeaderExpanded)}
             className="flex items-center gap-3 transition-colors hover:text-sky-500 text-left cursor-pointer group"
           >
@@ -303,7 +303,7 @@ export function ChatBox() {
                 })}
               </h2>
               <p className="text-[9px] font-bold uppercase tracking-widest text-slate-400 group-hover:text-sky-500 transition-colors">
-                {isHeaderExpanded 
+                {isHeaderExpanded
                   ? pickText(language, { en: 'Click to collapse', th: 'คลิกเพื่อย่อควิกเมนู' })
                   : pickText(language, { en: 'Click to expand tools', th: 'คลิกเพื่อขยายเครื่องมือ' })
                 }
@@ -311,7 +311,7 @@ export function ChatBox() {
             </div>
           </button>
 
-          <button 
+          <button
             onClick={() => setIsHeaderExpanded(!isHeaderExpanded)}
             className="flex h-8 w-8 items-center justify-center rounded-full bg-slate-100 text-slate-500 hover:bg-sky-100 hover:text-sky-600 dark:bg-white/5 dark:text-slate-400 dark:hover:bg-white/10 dark:hover:text-sky-400 transition-all shadow-sm cursor-pointer"
           >
@@ -399,7 +399,7 @@ export function ChatBox() {
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
-            className="absolute inset-0 z-[60] bg-white/98 backdrop-blur-md px-5 py-6 flex flex-col justify-center dark:bg-slate-950/98 md:px-6"
+            className="absolute inset-0 z-60 bg-white/98 backdrop-blur-md px-5 py-6 flex flex-col justify-center dark:bg-slate-950/98 md:px-6"
           >
             <motion.div
               initial={{ y: 20, scale: 0.95 }}
@@ -531,11 +531,10 @@ export function ChatBox() {
               {sessions.map((s) => (
                 <div
                   key={s.id}
-                  className={`group relative rounded-3xl border p-4.5 transition-all ${
-                    activeSessionId === s.id
+                  className={`group relative rounded-3xl border p-4.5 transition-all ${activeSessionId === s.id
                       ? 'border-indigo-200 bg-indigo-50/50 shadow-md dark:border-indigo-500/30 dark:bg-indigo-500/10'
                       : 'border-slate-200 bg-white hover:border-slate-300 dark:border-white/10 dark:bg-white/5 dark:hover:border-white/20'
-                  }`}
+                    }`}
                 >
                   {editingSessionId === s.id ? (
                     <div className="flex items-center gap-3">
@@ -649,9 +648,9 @@ export function ChatBox() {
                         <p className="whitespace-pre-wrap">
                           {message.id === 'init'
                             ? pickText(language, {
-                                en: 'SpecBot is ready to help you discover and compare smartphones. Start with a natural-language question or tap one of the prompts below.',
-                                th: 'SpecBot พร้อมช่วยคุณหาและเทียบสเปคมือถือ ลองพิมพ์คำถาม หรือกดตัวอย่างด้านล่างเพื่อเริ่มต้นได้เลย',
-                              })
+                              en: 'SpecBot is ready to help you discover and compare smartphones. Start with a natural-language question or tap one of the prompts below.',
+                              th: 'SpecBot พร้อมช่วยคุณหาและเทียบสเปคมือถือ ลองพิมพ์คำถาม หรือกดตัวอย่างด้านล่างเพื่อเริ่มต้นได้เลย',
+                            })
                             : message.content}
                         </p>
                       )}
@@ -669,17 +668,17 @@ export function ChatBox() {
                             />
                           ))}
                         </div>
-                        
+
                         {/* Feedback Actions */}
                         <div className="flex items-center gap-4 pl-1">
-                          <button 
+                          <button
                             onClick={() => handleFeedback(message.id, 1)}
                             className={`flex items-center gap-1.5 text-[10px] font-black uppercase tracking-widest transition-all ${message.rating === 1 ? 'text-emerald-500 scale-110' : 'text-slate-400 hover:text-emerald-500'}`}
                           >
                             <ThumbsUp className={`h-3 w-3 ${message.rating === 1 ? 'fill-emerald-500' : ''}`} />
                             {message.rating === 1 ? 'Helpful' : 'Like'}
                           </button>
-                          <button 
+                          <button
                             onClick={() => handleFeedback(message.id, -1)}
                             className={`flex items-center gap-1.5 text-[10px] font-black uppercase tracking-widest transition-all ${message.rating === -1 ? 'text-rose-500 scale-110' : 'text-slate-400 hover:text-rose-500'}`}
                           >

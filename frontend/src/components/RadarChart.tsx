@@ -5,6 +5,7 @@ import type { Spec } from '@/lib/api'
 
 interface RadarChartProps {
   specs: Spec[]
+  focusedModel?: string | null
 }
 
 const METRICS = [
@@ -49,7 +50,7 @@ const getScore = (spec: Spec, metric: string): number => {
   }
 }
 
-export function RadarChart({ specs }: RadarChartProps) {
+export function RadarChart({ specs, focusedModel }: RadarChartProps) {
   const size = 400
   const center = size / 2
   const radius = size * 0.4
@@ -137,19 +138,28 @@ export function RadarChart({ specs }: RadarChartProps) {
         })}
 
         {/* Data Polygons */}
-        {specs.map((spec, i) => (
-          <motion.polygon
-            key={`${spec.brand}-${spec.model}`}
-            initial={{ opacity: 0, scale: 0.8 }}
-            animate={{ opacity: 1, scale: 1 }}
-            points={getPoints(spec)}
-            fill={colors[i % colors.length].fill}
-            stroke={colors[i % colors.length].stroke}
-            strokeWidth="3"
-            strokeLinejoin="round"
-            transition={{ duration: 1, ease: "circOut" }}
-          />
-        ))}
+        {specs.map((spec, i) => {
+          const isFocused = focusedModel === spec.model
+          const isAnyFocused = focusedModel !== null
+          
+          return (
+            <motion.polygon
+              key={`${spec.brand}-${spec.model}`}
+              initial={{ opacity: 0, scale: 0.8 }}
+              animate={{ 
+                opacity: isAnyFocused ? (isFocused ? 1 : 0.1) : 1, 
+                scale: 1,
+                strokeWidth: isFocused ? 5 : 3
+              }}
+              points={getPoints(spec)}
+              fill={colors[i % colors.length].fill}
+              stroke={colors[i % colors.length].stroke}
+              strokeLinejoin="round"
+              transition={{ duration: 0.5, ease: "circOut" }}
+              className="transition-all duration-300 pointer-events-none"
+            />
+          )
+        })}
       </svg>
       
       {/* Legend */}

@@ -17,6 +17,7 @@ export function CompareSection() {
   const [selectedModels, setSelectedModels] = useState<(string | null)[]>([null, null, null, null])
   const [activeSlotIndex, setActiveSlotIndex] = useState<number | null>(null)
   const [isSelectorOpen, setIsSelectorOpen] = useState(false)
+  const [focusedModel, setFocusedModel] = useState<string | null>(null)
 
   const activeModels = selectedModels.filter((m): m is string => m !== null)
 
@@ -46,18 +47,47 @@ export function CompareSection() {
     }
   }
 
+  const containerVariants = {
+    hidden: { opacity: 0 },
+    visible: {
+      opacity: 1,
+      transition: {
+        staggerChildren: 0.12,
+        delayChildren: 0.1
+      }
+    }
+  } as const
+
+  const itemVariants = {
+    hidden: { opacity: 0, y: 20 },
+    visible: { 
+      opacity: 1, 
+      y: 0,
+      transition: {
+        type: "spring",
+        stiffness: 100,
+        damping: 15
+      }
+    }
+  } as const
+
   return (
-    <section className="space-y-12">
+    <motion.section 
+      variants={containerVariants}
+      initial="hidden"
+      animate="visible"
+      className="space-y-12"
+    >
       {/* 1. Header & Intro */}
-      <div className="flex flex-col md:flex-row md:items-end justify-between gap-6 mb-12">
+      <motion.div variants={itemVariants} className="flex flex-col md:flex-row md:items-end justify-between gap-6 mb-12">
         <div className="space-y-4">
           <div className="flex items-center gap-2 text-[11px] font-black uppercase tracking-[0.3em] text-sky-500">
              <BarChart3 className="h-3.5 w-3.5" />
              Specification Radar
           </div>
-          <h2 className="font-heading text-6xl font-black tracking-tighter text-slate-950 dark:text-white uppercase leading-none">
+          <h1 className="text-6xl font-black tracking-tighter text-slate-950 dark:text-white uppercase leading-none">
             {pickText(language, { en: 'Compare Devices', th: 'เปรียบเทียบอุปกรณ์' })}
-          </h2>
+          </h1>
           <p className="text-sm font-medium text-slate-500 dark:text-slate-400 max-w-2xl">
             {pickText(language, { 
               en: 'Perform detailed side-by-side technical benchmarking and specification analysis for your selected smartphone hardware.', 
@@ -65,16 +95,21 @@ export function CompareSection() {
             })}
           </p>
         </div>
-      </div>
+      </motion.div>
 
       {/* 2. Device Selection Grid (4 Slots) */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+      <motion.div variants={itemVariants} className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
         {slots.map((spec, i) => (
           <div key={i} className="relative group min-h-[320px]">
             {spec ? (
               <motion.div 
                 layoutId={`stage-${spec.brand}-${spec.model}`}
-                className="relative flex flex-col items-center justify-between rounded-3xl glass-card p-6 border-white/5 h-full shadow-2xl overflow-hidden"
+                onClick={() => setFocusedModel(focusedModel === spec.model ? null : spec.model)}
+                className={`relative flex flex-col items-center justify-between rounded-3xl border transition-all h-full shadow-2xl overflow-hidden cursor-pointer backdrop-blur-xl ${
+                  focusedModel === spec.model 
+                    ? 'border-sky-500 bg-sky-500/10 ring-4 ring-sky-500/10' 
+                    : 'border-slate-200/50 dark:border-white/5 bg-white/50 dark:bg-white/5 hover:border-sky-500/30'
+                }`}
               >
                 {/* Remove Button */}
                 <button 
@@ -110,19 +145,19 @@ export function CompareSection() {
                   setActiveSlotIndex(i)
                   setIsSelectorOpen(true)
                 }}
-                className="flex flex-col items-center justify-center rounded-3xl border-2 border-dashed border-slate-200/50 bg-white/40 dark:border-white/5 dark:bg-white/2 py-12 px-6 h-full text-center transition-all hover:border-sky-500/50 hover:bg-sky-500/5 cursor-pointer w-full group"
+                className="flex flex-col items-center justify-center rounded-[2.5rem] border-2 border-dashed border-slate-200/50 bg-white/70 backdrop-blur-xl dark:border-white/5 dark:bg-white/2 py-12 px-6 h-full text-center transition-all hover:border-sky-500/50 hover:bg-sky-500/5 hover:shadow-2xl hover:shadow-sky-500/10 active:scale-95 cursor-pointer w-full group"
               >
-                <div className="h-12 w-12 rounded-2xl bg-slate-950/40 border border-white/10 flex items-center justify-center mb-4 text-slate-400 group-hover:text-sky-500 group-hover:border-sky-500/50 transition-all">
-                  <Plus className="h-5 w-5" />
+                <div className="h-14 w-14 rounded-2xl bg-white dark:bg-slate-950/40 border border-slate-200 dark:border-white/10 flex items-center justify-center mb-4 text-slate-400 group-hover:text-sky-500 group-hover:border-sky-500/50 group-hover:scale-110 transition-all shadow-sm">
+                  <Plus className="h-6 w-6" />
                 </div>
-                <p className="text-[10px] font-black text-slate-400 dark:text-slate-500 uppercase tracking-widest group-hover:text-sky-500 transition-colors">
+                <p className="text-[10px] font-black text-slate-400 dark:text-slate-500 uppercase tracking-[0.2em] group-hover:text-sky-500 group-hover:tracking-[0.3em] transition-all">
                   {pickText(language, { en: 'Add Device', th: 'เพิ่มอุปกรณ์' })}
                 </p>
               </button>
             )}
           </div>
         ))}
-      </div>
+      </motion.div>
 
       {/* 4. Comparison Table (Technical Specs) */}
       <ProductSelector 
@@ -238,14 +273,14 @@ export function CompareSection() {
 
             {/* 5. Performance Radar Chart */}
             <div className="pt-8 flex justify-center">
-               <div className="w-full max-w-4xl rounded-[2.5rem] border border-slate-200/50 bg-slate-100/50 dark:border-white/5 dark:bg-white/2 p-12 shadow-inner">
-                  <RadarChart specs={specs} />
+               <div className="w-full max-w-4xl rounded-[3rem] border border-slate-200/50 bg-white/50 dark:border-white/5 dark:bg-white/2 p-12 shadow-inner backdrop-blur-xl">
+                  <RadarChart specs={specs} focusedModel={focusedModel} />
                </div>
             </div>
           </motion.div>
         )}
       </AnimatePresence>
-    </section>
+    </motion.section>
   )
 }
 

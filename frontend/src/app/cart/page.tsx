@@ -30,6 +30,30 @@ export default function CartPage() {
     }
   }
 
+  const containerVariants = {
+    hidden: { opacity: 0 },
+    visible: { 
+      opacity: 1,
+      transition: {
+        staggerChildren: 0.1,
+        delayChildren: 0.1
+      }
+    }
+  } as const
+
+  const itemVariants = {
+    hidden: { opacity: 0, y: 20 },
+    visible: { 
+      opacity: 1, 
+      y: 0,
+      transition: {
+        type: "spring",
+        stiffness: 100,
+        damping: 15
+      }
+    }
+  } as const
+
   if (ordered) {
     return (
       <div className="min-h-screen flex items-center justify-center p-6 text-center">
@@ -51,13 +75,13 @@ export default function CartPage() {
 
   return (
     <motion.div 
-      initial={{ opacity: 0, y: 20 }}
-      animate={{ opacity: 1, y: 0 }}
-      transition={{ duration: 0.5 }}
-      className="min-h-screen bg-background text-foreground p-6 md:p-12"
+      variants={containerVariants}
+      initial="hidden"
+      animate="visible"
+      className="min-h-screen bg-transparent text-foreground p-8 lg:p-12 mb-safe"
     >
       <div className="max-w-7xl mx-auto">
-        <header className="mb-12 space-y-6">
+        <motion.header variants={itemVariants} className="mb-12 space-y-6">
           <div className="space-y-4 px-4">
             <div className="flex items-center gap-2 text-[11px] font-black uppercase tracking-[0.3em] text-sky-500">
               <ShoppingCart className="h-3.5 w-3.5" />
@@ -70,11 +94,11 @@ export default function CartPage() {
               {itemCount} {itemCount === 1 ? 'device' : 'devices'} selected for review. Manage your inventory and finalize your order within our secure transaction gateway.
             </p>
           </div>
-        </header>
+        </motion.header>
 
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-12">
           {/* Cart Items List */}
-          <div className="lg:col-span-2 space-y-4">
+          <motion.div variants={itemVariants} className="lg:col-span-2 space-y-4">
             <AnimatePresence mode="popLayout">
               {cart.length > 0 ? (
                 cart.map((item) => (
@@ -84,7 +108,7 @@ export default function CartPage() {
                     initial={{ opacity: 0, x: -20 }}
                     animate={{ opacity: 1, x: 0 }}
                     exit={{ opacity: 0, x: 20 }}
-                    className="glass-card p-6 rounded-[2rem] flex items-center gap-6 group hover:border-magenta-500/30 transition-all"
+                    className="rounded-3xl border border-slate-200/50 bg-white/50 dark:border-white/5 dark:bg-white/5 backdrop-blur-xl shadow-xl p-6 flex items-center gap-6 group hover:border-sky-500/30 transition-all"
                   >
                     <div className="h-24 w-24 bg-slate-900 rounded-2xl overflow-hidden border border-white/5 flex items-center justify-center">
                       {item.product.thumbnail_url ? (
@@ -133,11 +157,11 @@ export default function CartPage() {
                 </div>
               )}
             </AnimatePresence>
-          </div>
+          </motion.div>
 
           {/* Cart Summary Header */}
-          <div className="lg:col-span-1">
-            <div className="glass-card p-8 rounded-[3rem] space-y-8 sticky top-32">
+          <motion.div variants={itemVariants} className="lg:col-span-1">
+            <div className="rounded-3xl border border-slate-200/50 bg-white/50 dark:border-white/5 dark:bg-white/5 backdrop-blur-xl shadow-xl p-8 space-y-8 sticky top-32">
               <h2 className="text-2xl font-black uppercase tracking-tighter">Budget Summary</h2>
               
               <div className="space-y-4 border-b border-white/5 pb-8">
@@ -182,7 +206,7 @@ export default function CartPage() {
                 <span className="text-[8px] font-bold tracking-[0.5em] uppercase">Secured Neural Gateway</span>
               </div>
             </div>
-          </div>
+          </motion.div>
         </div>
       </div>
     </motion.div>
