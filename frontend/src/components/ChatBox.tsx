@@ -29,14 +29,14 @@ export function ChatBox() {
   const { language } = useUiPreferences()
   const quickPrompts = language === 'en'
     ? [
-        'Phones with strong battery life at a mid-range price',
-        'Compare Galaxy S21 and Galaxy S22',
-        'Which models have 12 GB RAM?',
+        'Strong battery mid-range',
+        'Compare S21 vs S22',
+        '12GB RAM models',
       ]
     : [
-        'มือถือแบตอึด ราคากลางๆ',
-        'เปรียบเทียบ Galaxy S21 กับ Galaxy S22',
-        'มีรุ่นไหน RAM 12 GB บ้าง',
+        'แบตอึด ราคากลางๆ',
+        'เทียบ S21 vs S22',
+        'รุ่นที่มี RAM 12GB',
       ]
 
   const [sessions, setSessions] = useState<ChatSession[]>([])
@@ -723,8 +723,8 @@ export function ChatBox() {
                 value={input}
                 onChange={(e) => setInput(e.target.value)}
                 placeholder={pickText(language, {
-                  en: 'Find Samsung phones under 20k with GOOD CAMERA',
-                  th: 'เช่น มือถือ Samsung ราคาไม่เกิน 20,000 ที่กล้องสวย',
+                  en: 'e.g. Samsung under 20k + Good Camera',
+                  th: 'เช่น Samsung ไม่เกิน 20k + กล้องสวย',
                 })}
                 className="h-14 rounded-full border-slate-200 bg-white px-6 text-sm font-medium text-slate-900 shadow-sm placeholder:text-slate-400 focus-visible:border-sky-500 focus-visible:ring-sky-500/20 dark:border-white/10 dark:bg-white/5 dark:text-white dark:placeholder:text-slate-500"
                 disabled={mutation.isPending}
