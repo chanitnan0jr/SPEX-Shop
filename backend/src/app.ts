@@ -1,6 +1,6 @@
 import express from 'express'
 import cors from 'cors'
-import { rateLimiter, searchRateLimiter } from './middleware/rateLimit'
+import { rateLimiter } from './middleware/rateLimit'
 import { errorHandler } from './middleware/errorHandler'
 import healthRouter from './routes/health'
 import searchRouter from './routes/search'
@@ -22,7 +22,7 @@ app.use(express.json())
 app.use(rateLimiter)
 
 app.use('/api', healthRouter)
-app.use('/api', searchRateLimiter, searchRouter)
+app.use('/api', searchRouter)
 app.use('/api', specsRouter)
 app.use('/api', compareRouter)
 app.use('/api', trackRouter)

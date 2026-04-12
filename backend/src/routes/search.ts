@@ -1,10 +1,11 @@
 import { Router, type Request, type Response } from 'express'
 import { runRAG } from '../services/rag'
 import { ChatMessageModel } from '../models/ChatMessage'
+import { searchRateLimiter } from '../middleware/rateLimit'
 
 const router = Router()
 
-router.post('/search', async (req: Request, res: Response) => {
+router.post('/search', searchRateLimiter, async (req: Request, res: Response) => {
   const { query, sessionId } = req.body as { query?: string, sessionId?: string }
 
   if (!query || typeof query !== 'string' || query.trim().length === 0) {
