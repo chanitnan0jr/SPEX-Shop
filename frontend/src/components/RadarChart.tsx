@@ -1,11 +1,14 @@
 'use client'
 
+import { useState } from 'react'
 import { motion } from 'framer-motion'
 import type { Spec } from '@/lib/api'
 
 interface RadarChartProps {
   specs: Spec[]
+  /** External controlled focus — if omitted the chart manages its own state */
   focusedModel?: string | null
+  onFocusChange?: (model: string | null) => void
 }
 
 const METRICS = [
@@ -50,7 +53,22 @@ const getScore = (spec: Spec, metric: string): number => {
   }
 }
 
-export function RadarChart({ specs, focusedModel }: RadarChartProps) {
+export function RadarChart({ specs, focusedModel: externalFocus, onFocusChange }: RadarChartProps) {
+  const [internalFocus, setInternalFocus] = useState<string | null>(null)
+
+  // Controlled (CompareSection passes focusedModel) vs uncontrolled (homepage)
+  const isControlled = externalFocus !== undefined
+  const focusedModel = isControlled ? externalFocus : internalFocus
+
+  const handleFocus = (model: string) => {
+    const next = focusedModel === model ? null : model
+    if (isControlled) {
+      onFocusChange?.(next)
+    } else {
+      setInternalFocus(next)
+    }
+  }
+
   const size = 400
   const center = size / 2
   const radius = size * 0.4
@@ -140,37 +158,56 @@ export function RadarChart({ specs, focusedModel }: RadarChartProps) {
         {/* Data Polygons */}
         {specs.map((spec, i) => {
           const isFocused = focusedModel === spec.model
-          const isAnyFocused = focusedModel !== null
-          
+          const isAnyFocused = focusedModel != null
+
           return (
             <motion.polygon
               key={`${spec.brand}-${spec.model}`}
               initial={{ opacity: 0, scale: 0.8 }}
-              animate={{ 
-                opacity: isAnyFocused ? (isFocused ? 1 : 0.1) : 1, 
-                scale: 1,
-                strokeWidth: isFocused ? 5 : 3
+              animate={{
+                opacity: isAnyFocused ? (isFocused ? 1 : 0.08) : 1,
+                scale: isFocused ? 1.03 : 1,
+                strokeWidth: isFocused ? 5 : 3,
               }}
               points={getPoints(spec)}
               fill={colors[i % colors.length].fill}
               stroke={colors[i % colors.length].stroke}
               strokeLinejoin="round"
-              transition={{ duration: 0.5, ease: "circOut" }}
-              className="transition-all duration-300 pointer-events-none"
+              transition={{ duration: 0.35, ease: 'circOut' }}
+              className="pointer-events-none"
             />
           )
         })}
       </svg>
       
-      {/* Legend */}
+      {/* Legend — click to focus */}
       <div className="flex flex-wrap justify-center gap-6 mt-8">
-        {specs.map((spec, i) => (
-          <div key={`${spec.brand}-${spec.model}`} className="flex items-center gap-3">
-            <div className={`w-3 h-3 rounded-full border-2 border-white dark:border-slate-800 shadow-[0_0_10px_currentColor]`} 
-                 style={{ backgroundColor: colors[i % colors.length].stroke, color: colors[i % colors.length].stroke }} />
-            <span className="text-[10px] font-black text-slate-500 dark:text-slate-400 uppercase tracking-widest">{spec.model}</span>
-          </div>
-        ))}
+        {specs.map((spec, i) => {
+          const isFocused = focusedModel === spec.model
+          const isAnyFocused = focusedModel != null
+          return (
+            <button
+              key={`${spec.brand}-${spec.model}`}
+              onClick={() => handleFocus(spec.model)}
+              className={`flex items-center gap-3 rounded-full px-3 py-1.5 border transition-all duration-300 cursor-pointer ${
+                isFocused
+                  ? 'border-current bg-white/10 dark:bg-white/5 scale-105'
+                  : isAnyFocused
+                  ? 'border-transparent opacity-30 hover:opacity-60'
+                  : 'border-transparent hover:border-current hover:bg-white/5'
+              }`}
+              style={{ color: colors[i % colors.length].stroke }}
+            >
+              <div
+                className="w-2.5 h-2.5 rounded-full shadow-[0_0_8px_currentColor]"
+                style={{ backgroundColor: colors[i % colors.length].stroke }}
+              />
+              <span className="text-[10px] font-black uppercase tracking-widest">
+                {spec.model}
+              </span>
+            </button>
+          )
+        })}
       </div>
     </div>
   )
